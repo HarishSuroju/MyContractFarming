@@ -2,10 +2,10 @@
   "name": "assuredcontractfarming",
   "version": "1.0.0",
   "description": "Assured Contract Farming Platform",
-  "main": "server/server.js",
+  "main": "BackEnd/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "nodemon server/server.js",
+    "start": "node BackEnd/server.js",
+    "dev": "nodemon BackEnd/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
