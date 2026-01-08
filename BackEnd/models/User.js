@@ -12,11 +12,11 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true
+    required: false
   },
   password: {
     type: String,
-    required: true
+    required: false
   },
   role: {
     type: String,
@@ -26,6 +26,16 @@ const userSchema = new mongoose.Schema({
   profileComplete: {
     type: Boolean,
     default: false
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  otp: {
+    type: String
+  },
+  otpExpires: {
+    type: Date
   }
 }, {
   timestamps: true
@@ -47,7 +57,7 @@ const farmerProfileSchema = new mongoose.Schema({
     required: true
   },
   cropsGrown: {
-    type: String,
+    type: [String],
     required: true
   },
   experience: {
@@ -78,7 +88,7 @@ const contractorProfileSchema = new mongoose.Schema({
     required: true
   },
   cropDemand: {
-    type: String,
+    type: [String],
     required: true
   },
   contractPreferences: {

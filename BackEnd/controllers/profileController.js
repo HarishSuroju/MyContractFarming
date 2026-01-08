@@ -125,8 +125,33 @@ const getProfile = async (req, res) => {
   }
 };
 
+const getMatches = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).populate('farmerProfile').populate('contractorProfile');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    let matches = [];
+    if (user.role === 'farmer') {
+      // Find contractors whose cropDemand includes any of the farmer's crops
+      const farmerCrops = user.farmerProfile?.cropsGrown || [];
+      matches = await ContractorProfile.find({ cropDemand: { $in: farmerCrops } }).populate('user');
+    } else if (user.role === 'contractor') {
+      // Find farmers whose cropsGrown includes any of the contractor's cropDemand
+      const contractorDemand = user.contractorProfile?.cropDemand || [];
+      matches = await FarmerProfile.find({ cropsGrown: { $in: contractorDemand } }).populate('user');
+    }
+
+    res.status(200).json({ matches });
+  } catch (error) {
+    console.error('Error fetching matches:', error);
+    res.status(500).json({ message: 'Server error fetching matches' });
+  }
+};
+
 module.exports = {
   createFarmerProfile,
   createContractorProfile,
-  getProfile
+  getProfile,
+  getMatches
 };
