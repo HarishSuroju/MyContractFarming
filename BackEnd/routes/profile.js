@@ -1,5 +1,5 @@
 const express = require('express');
-const { createFarmerProfile, createContractorProfile, getProfile } = require('../controllers/profileController');
+const { createFarmerProfile, createContractorProfile, getProfile, getMatches } = require('../controllers/profileController');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -8,5 +8,6 @@ const router = express.Router();
 router.get('/', authenticateToken, getProfile);
 router.post('/farmer', authenticateToken, createFarmerProfile);
 router.post('/contractor', authenticateToken, createContractorProfile);
+router.get('/match', authenticateToken, getMatches);
 
 module.exports = router;

@@ -2,10 +2,10 @@
   "name": "assuredcontractfarming",
   "version": "1.0.0",
   "description": "Assured Contract Farming Platform",
-  "main": "BackEnd/server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node BackEnd/server.js",
-    "dev": "nodemon BackEnd/server.js",
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -23,7 +23,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.12"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
