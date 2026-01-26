@@ -61,9 +61,9 @@ const createConnectionRequest = async (req, res) => {
       senderId: senderId,
       type: 'connection_request',
       title: 'New Connection Request',
-      message: `${sender.name} sent you a connection request`,
+      message: `${sender.name} ${sender.role === 'farmer' ? 'Contractor' : 'Farmer'} wants to connect with you`,
       referenceId: connectionRequest._id,
-      referenceType: 'connection'
+      referenceType: 'connection_request'
     });
 
     await notification.save();
@@ -191,7 +191,7 @@ const updateConnectionRequestStatus = async (req, res) => {
       title: 'Connection Request Updated',
       message: `Your connection request to ${request.receiverName} was ${status}`,
       referenceId: request._id,
-      referenceType: 'connection'
+      referenceType: 'connection_request'
     });
 
     await notification.save();

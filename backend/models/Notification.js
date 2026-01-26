@@ -28,7 +28,7 @@ const notificationSchema = new mongoose.Schema({
   },
   referenceType: {
     type: String,
-    enum: ['connection', 'agreement', 'payment', 'rating']
+    enum: ['connection', 'connection_request', 'proposal', 'agreement', 'payment', 'rating']
   },
   isRead: {
     type: Boolean,
