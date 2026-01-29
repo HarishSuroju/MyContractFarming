@@ -1,19 +1,26 @@
 const { Agreement } = require('../models/Agreement');
 const { User } = require('../models/User');
-const {
-  logFraudAlert,
-  detectAgreementRejectionSpike,
-  detectAbnormalRatingBehaviour
-} = require('../utils/fraudDetection');
+const { Notification } = require('../models/Notification');
 
 // Create a new agreement between farmer and contractor
 const createAgreement = async (req, res) => {
   try {
-    const { farmer, contractor, cropType, landArea, duration, salary, inputsSupplied, season, terms } = req.body;
+    console.log('=== CREATE AGREEMENT DEBUG INFO ===');
+    console.log('Request body:', req.body);
+    console.log('Authenticated user ID:', req.user?.userId);
+    console.log('Authenticated user role:', req.user?.role);
+    
+    const { title, farmer, contractor, cropType, landArea, duration, salary, inputsSupplied, season, terms } = req.body;
     const userId = req.user.userId;
+
+    console.log('Title:', title);
+    console.log('Farmer ID:', farmer);
+    console.log('Contractor ID:', contractor);
+    console.log('Current user ID:', userId);
 
     // Verify that the current user is either the farmer or contractor
     if (userId !== farmer && userId !== contractor) {
+      console.log('Authorization failed: Current user is not part of the agreement');
       return res.status(403).json({
         status: 'error',
         message: 'You are not authorized to create this agreement'
@@ -21,10 +28,18 @@ const createAgreement = async (req, res) => {
     }
 
     // Check if users exist
+    console.log('Looking up farmer user...');
     const farmerUser = await User.findById(farmer);
+    console.log('Farmer user found:', !!farmerUser);
+    if (farmerUser) console.log('Farmer role:', farmerUser.role);
+
+    console.log('Looking up contractor user...');
     const contractorUser = await User.findById(contractor);
+    console.log('Contractor user found:', !!contractorUser);
+    if (contractorUser) console.log('Contractor role:', contractorUser.role);
 
     if (!farmerUser || !contractorUser) {
+      console.log('User lookup failed - farmer exists:', !!farmerUser, 'contractor exists:', !!contractorUser);
       return res.status(404).json({
         status: 'error',
         message: 'Farmer or contractor not found'
@@ -32,6 +47,7 @@ const createAgreement = async (req, res) => {
     }
 
     if (farmerUser.role !== 'farmer' || contractorUser.role !== 'contractor') {
+      console.log('Role validation failed - farmer role:', farmerUser.role, 'contractor role:', contractorUser.role);
       return res.status(400).json({
         status: 'error',
         message: 'Invalid user roles for agreement'
@@ -39,7 +55,9 @@ const createAgreement = async (req, res) => {
     }
 
     // Create new agreement
+    console.log('Creating agreement document...');
     const agreement = new Agreement({
+      title,
       farmer,
       contractor,
       cropType,
@@ -51,7 +69,31 @@ const createAgreement = async (req, res) => {
       terms
     });
 
+    console.log('Saving agreement...');
     await agreement.save();
+    console.log('Agreement saved successfully with ID:', agreement._id);
+
+    // Create notification for the other party
+    const otherUserId = userId === farmer ? contractor : farmer;
+    const senderName = farmerUser._id.toString() === userId ? farmerUser.name : contractorUser.name;
+    
+    const notification = new Notification({
+      userId: otherUserId,
+      senderId: userId,
+      type: 'agreement_sent',
+      title: 'New Agreement Received',
+      message: `${senderName} has sent you a new agreement for ${cropType}.`,
+      referenceId: agreement._id,
+      referenceType: 'agreement'
+    });
+
+    await notification.save();
+
+    // Emit real-time notification if user is online
+    if (req.app && req.app.get('io')) {
+      const io = req.app.get('io');
+      io.to(otherUserId.toString()).emit('notification:new', notification);
+    }
 
     res.status(201).json({
       status: 'success',
@@ -59,15 +101,84 @@ const createAgreement = async (req, res) => {
       data: { agreement }
     });
   } catch (error) {
-    console.error('Create agreement error:', error);
+    console.error('=== CREATE AGREEMENT ERROR ===');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    if (error.name === 'ValidationError') {
+      console.error('Validation errors:', error.errors);
+    }
+    console.error('Request body at time of error:', req.body);
+    console.error('Authenticated user:', req.user);
+    
     res.status(500).json({
       status: 'error',
-      message: 'Server error while creating agreement'
+      message: 'Server error while creating agreement: ' + error.message
     });
   }
 };
 
-// Get agreements where the current user participates
+// Send agreement to contractor (change status to sent_to_contractor)
+const sendAgreement = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const userId = req.user.userId;
+
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+    
+    if (!agreement) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Agreement not found'
+      });
+    }
+
+    // Only the farmer can send the agreement
+    if (agreement.farmer._id.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only the farmer can send this agreement'
+      });
+    }
+
+    // Update status to sent_to_contractor
+    agreement.status = 'sent_to_contractor';
+    await agreement.save();
+
+    // Create notification for contractor
+    const notification = new Notification({
+      userId: agreement.contractor._id.toString(),
+      senderId: userId,
+      type: 'agreement_sent',
+      title: 'New Agreement Received',
+      message: `${agreement.farmer.name} has sent you an agreement for ${agreement.cropType}.`,
+      referenceId: agreement._id,
+      referenceType: 'agreement'
+    });
+
+    await notification.save();
+
+    // Emit real-time notification
+    if (req.app && req.app.get('io')) {
+      const io = req.app.get('io');
+      io.to(agreement.contractor._id.toString()).emit('notification:new', notification);
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Agreement sent successfully',
+      data: { agreement }
+    });
+  } catch (error) {
+    console.error('Send agreement error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error while sending agreement'
+    });
+  }
+};
+
+// Get user agreements
 const getUserAgreements = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -77,11 +188,12 @@ const getUserAgreements = async (req, res) => {
         { farmer: userId },
         { contractor: userId }
       ]
-    }).populate('farmer', 'name email phone').populate('contractor', 'name email phone').sort({ createdAt: -1 });
+    })
+    .populate('farmer contractor')
+    .sort({ createdAt: -1 });
 
     res.status(200).json({
       status: 'success',
-      message: 'Agreements fetched successfully',
       data: { agreements }
     });
   } catch (error) {
@@ -93,30 +205,31 @@ const getUserAgreements = async (req, res) => {
   }
 };
 
-// Get a single agreement by ID (only if user is a party to it)
+// Get agreement by ID
 const getAgreementById = async (req, res) => {
   try {
     const { agreementId } = req.params;
     const userId = req.user.userId;
 
-    const agreement = await Agreement.findOne({
-      _id: agreementId,
-      $or: [
-        { farmer: userId },
-        { contractor: userId }
-      ]
-    }).populate('farmer', 'name email phone').populate('contractor', 'name email phone');
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
 
     if (!agreement) {
       return res.status(404).json({
         status: 'error',
-        message: 'Agreement not found or you are not authorized to view it'
+        message: 'Agreement not found'
+      });
+    }
+
+    // Check if user has access to this agreement
+    if (agreement.farmer._id.toString() !== userId && agreement.contractor._id.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this agreement'
       });
     }
 
     res.status(200).json({
       status: 'success',
-      message: 'Agreement fetched successfully',
       data: { agreement }
     });
   } catch (error) {
@@ -128,121 +241,15 @@ const getAgreementById = async (req, res) => {
   }
 };
 
-// Update agreement lifecycle status (draft, pending, active, completed, etc.)
-const updateAgreementStatus = async (req, res) => {
-  try {
-    const { agreementId } = req.params;
-    const { status } = req.body;
-    const userId = req.user.userId;
-
-    // Validate status
-    const validStatuses = ['draft', 'pending', 'accepted', 'rejected', 'active', 'completed', 'terminated'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid status'
-      });
-    }
-
-    // Find agreement and check if user is authorized to update
-    const agreement = await Agreement.findOne({
-      _id: agreementId,
-      $or: [
-        { farmer: userId },
-        { contractor: userId }
-      ]
-    });
-
-    if (!agreement) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Agreement not found or you are not authorized to update it'
-      });
-    }
-
-    // Update status
-    agreement.status = status;
-    agreement.updatedAt = Date.now();
-    await agreement.save();
-
-    // Fraud pattern: multiple agreement rejections by same user
-    if (status === 'rejected') {
-      await detectAgreementRejectionSpike(userId);
-    }
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Agreement status updated successfully',
-      data: { agreement }
-    });
-  } catch (error) {
-    console.error('Update agreement status error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error while updating agreement status'
-    });
-  }
-};
-
-// Mark that one of the parties has signed the agreement
-const signAgreement = async (req, res) => {
-  try {
-    const { agreementId } = req.params;
-    const userId = req.user.userId;
-
-    const agreement = await Agreement.findOne({
-      _id: agreementId,
-      $or: [
-        { farmer: userId },
-        { contractor: userId }
-      ]
-    });
-
-    if (!agreement) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Agreement not found or you are not authorized to sign it'
-      });
-    }
-
-    // Determine which party is signing
-    if (userId.equals(agreement.farmer)) {
-      agreement.farmerSignature = true;
-    } else if (userId.equals(agreement.contractor)) {
-      agreement.contractorSignature = true;
-    } else {
-      return res.status(403).json({
-        status: 'error',
-        message: 'You are not authorized to sign this agreement'
-      });
-    }
-
-    agreement.updatedAt = Date.now();
-    await agreement.save();
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Agreement signed successfully',
-      data: { agreement }
-    });
-  } catch (error) {
-    console.error('Sign agreement error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error while signing agreement'
-    });
-  }
-};
-
-// Update agreement fields (contractor-only, while in draft)
+// Update agreement
 const updateAgreement = async (req, res) => {
   try {
     const { agreementId } = req.params;
     const userId = req.user.userId;
     const updateData = req.body;
 
-    // Find agreement and check if user is authorized to update (must be contractor and status must be draft)
-    const agreement = await Agreement.findById(agreementId);
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+
     if (!agreement) {
       return res.status(404).json({
         status: 'error',
@@ -250,46 +257,40 @@ const updateAgreement = async (req, res) => {
       });
     }
 
-    // Only contractor can update, and only if status is draft
-    if (userId.toString() !== agreement.contractor.toString() || agreement.status !== 'draft') {
+    // Only the contractor can edit the agreement when it's in sent_to_contractor status
+    if (agreement.contractor._id.toString() !== userId || agreement.status !== 'sent_to_contractor') {
       return res.status(403).json({
         status: 'error',
-        message: 'You are not authorized to update this agreement'
+        message: 'You are not authorized to edit this agreement'
       });
     }
 
-    // Update agreement
+    // Update agreement fields
     Object.keys(updateData).forEach(key => {
-      if (key !== 'status' && key !== 'farmer' && key !== 'contractor') { // Prevent changing these fields
+      if (agreement[key] !== undefined) {
         agreement[key] = updateData[key];
       }
     });
-    
-    agreement.updatedAt = Date.now();
+
     await agreement.save();
 
-    // Get contractor user details
-    const { User } = require('../models/User');
-    const contractorUser = await User.findById(agreement.contractor);
-
-    // Create notification for the farmer
-    const { Notification } = require('../models/Notification');
+    // Create notification for farmer
     const notification = new Notification({
-      userId: agreement.farmer.toString(),
+      userId: agreement.farmer._id.toString(),
       senderId: userId,
-      type: 'agreement_sent',
-      title: 'Agreement Updated',
-      message: `Contractor ${contractorUser ? contractorUser.name : 'Unknown'} updated the agreement`,
+      type: 'agreement_edited',
+      title: 'Agreement Edited',
+      message: `${agreement.contractor.name} has edited the agreement for ${agreement.cropType}.`,
       referenceId: agreement._id,
       referenceType: 'agreement'
     });
 
     await notification.save();
 
-    // Emit real-time notification if farmer is online
+    // Emit real-time notification
     if (req.app && req.app.get('io')) {
       const io = req.app.get('io');
-      io.to(agreement.farmer.toString()).emit('notification:new', notification);
+      io.to(agreement.farmer._id.toString()).emit('notification:new', notification);
     }
 
     res.status(200).json({
@@ -306,13 +307,15 @@ const updateAgreement = async (req, res) => {
   }
 };
 
-// Generate and store a one-time password for agreement acceptance
-const sendOtp = async (req, res) => {
+// Update agreement status
+const updateAgreementStatus = async (req, res) => {
   try {
     const { agreementId } = req.params;
+    const { status } = req.body;
     const userId = req.user.userId;
 
-    const agreement = await Agreement.findById(agreementId);
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+
     if (!agreement) {
       return res.status(404).json({
         status: 'error',
@@ -320,53 +323,175 @@ const sendOtp = async (req, res) => {
       });
     }
 
-    // Only farmer can request OTP for acceptance
-    if (userId.toString() !== agreement.farmer.toString()) {
-      return res.status(403).json({
+    let validStatusTransition = false;
+    let recipientUserId = null;
+    let notificationType = '';
+    let notificationMessage = '';
+
+    // Define valid status transitions and recipients
+    if (agreement.farmer._id.toString() === userId) {
+      // Farmer actions
+      if (status === 'agreement_confirmed' && agreement.status === 'accepted_by_contractor') {
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_confirmed';
+        notificationMessage = `${agreement.farmer.name} has confirmed the agreement for ${agreement.cropType}.`;
+      } else if (status === 'agreement_rejected' && agreement.status === 'accepted_by_contractor') {
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.farmer.name} has rejected the agreement for ${agreement.cropType}.`;
+      }
+    } else if (agreement.contractor._id.toString() === userId) {
+      // Contractor actions
+      if (status === 'accepted_by_contractor' && agreement.status === 'sent_to_contractor') {
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_accepted';
+        notificationMessage = `${agreement.contractor.name} has accepted the agreement for ${agreement.cropType}.`;
+      } else if (status === 'rejected_by_contractor' && agreement.status === 'sent_to_contractor') {
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.contractor.name} has rejected the agreement for ${agreement.cropType}.`;
+      } else if (status === 'edited_by_contractor' && agreement.status === 'sent_to_contractor') {
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_edited';
+        notificationMessage = `${agreement.contractor.name} has edited the agreement for ${agreement.cropType}.`;
+      }
+    }
+
+    if (!validStatusTransition) {
+      return res.status(400).json({
         status: 'error',
-        message: 'You are not authorized to request OTP for this agreement'
+        message: 'Invalid status transition'
       });
     }
 
-    // Generate OTP (in a real app, this would be stored securely)
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Store OTP temporarily (in a real app, this would be stored in DB with expiration)
-    agreement.otp = otp;
-    agreement.otpGeneratedAt = Date.now();
+    // Update status
+    agreement.status = status;
+    if (status === 'agreement_confirmed' || status === 'accepted_by_contractor') {
+      agreement.acceptedAt = new Date();
+    }
     await agreement.save();
 
-    // Get contractor user details
-    const { User } = require('../models/User');
-    const contractorUser = await User.findById(agreement.contractor);
-
-    // Create notification for the farmer
-    const { Notification } = require('../models/Notification');
+    // Create notification for the other party
     const notification = new Notification({
-      userId: agreement.farmer.toString(),
-      senderId: agreement.contractor.toString(),
-      type: 'agreement_sent',
-      title: 'Agreement OTP Ready',
-      message: `Contractor ${contractorUser ? contractorUser.name : 'Unknown'} has sent you an agreement to accept. Please check your agreement and enter the OTP to accept.`,
+      userId: recipientUserId,
+      senderId: userId,
+      type: notificationType,
+      title: 'Agreement Status Updated',
+      message: notificationMessage,
       referenceId: agreement._id,
       referenceType: 'agreement'
     });
 
     await notification.save();
 
-    // Emit real-time notification if farmer is online
+    // Emit real-time notification
     if (req.app && req.app.get('io')) {
       const io = req.app.get('io');
-      io.to(agreement.farmer.toString()).emit('notification:new', notification);
+      io.to(recipientUserId).emit('notification:new', notification);
     }
-
-    // In a real app, send OTP via SMS/email
-    console.log(`OTP for agreement ${agreementId}: ${otp}`);
 
     res.status(200).json({
       status: 'success',
-      message: 'OTP generated and sent successfully',
-      data: { otpGenerated: true }
+      message: 'Agreement status updated successfully',
+      data: { agreement }
+    });
+  } catch (error) {
+    console.error('Update agreement status error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error while updating agreement status'
+    });
+  }
+};
+
+// Sign agreement
+const signAgreement = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const userId = req.user.userId;
+    const { signatureType } = req.body; // 'farmer' or 'contractor'
+
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+
+    if (!agreement) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Agreement not found'
+      });
+    }
+
+    // Check if user can sign
+    if ((signatureType === 'farmer' && agreement.farmer._id.toString() !== userId) ||
+        (signatureType === 'contractor' && agreement.contractor._id.toString() !== userId)) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not authorized to sign this agreement'
+      });
+    }
+
+    // Update signature
+    if (signatureType === 'farmer') {
+      agreement.farmerSignature = true;
+    } else if (signatureType === 'contractor') {
+      agreement.contractorSignature = true;
+    }
+
+    await agreement.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Agreement signed successfully',
+      data: { agreement }
+    });
+  } catch (error) {
+    console.error('Sign agreement error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error while signing agreement'
+    });
+  }
+};
+
+// Send OTP for agreement confirmation
+const sendOtp = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const userId = req.user.userId;
+
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+
+    if (!agreement) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Agreement not found'
+      });
+    }
+
+    // Only farmer can send OTP
+    if (agreement.farmer._id.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only the farmer can send OTP for this agreement'
+      });
+    }
+
+    // Generate and save OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    agreement.otp = otp;
+    agreement.otpGeneratedAt = new Date();
+    await agreement.save();
+
+    // In a real app, this would send the OTP via SMS/email
+    // For now, we'll just return it
+    res.status(200).json({
+      status: 'success',
+      message: 'OTP generated and sent',
+      data: { otp: 'OTP_HIDDEN_FOR_SECURITY' } // Don't expose actual OTP in production
     });
   } catch (error) {
     console.error('Send OTP error:', error);
@@ -377,14 +502,15 @@ const sendOtp = async (req, res) => {
   }
 };
 
-// Verify OTP and move agreement to "active" status
+// Accept agreement with OTP
 const acceptAgreement = async (req, res) => {
   try {
     const { agreementId } = req.params;
     const { otp } = req.body;
     const userId = req.user.userId;
 
-    const agreement = await Agreement.findById(agreementId);
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+
     if (!agreement) {
       return res.status(404).json({
         status: 'error',
@@ -392,11 +518,11 @@ const acceptAgreement = async (req, res) => {
       });
     }
 
-    // Only farmer can accept the agreement
-    if (userId.toString() !== agreement.farmer.toString()) {
+    // Only contractor can accept with OTP
+    if (agreement.contractor._id.toString() !== userId) {
       return res.status(403).json({
         status: 'error',
-        message: 'You are not authorized to accept this agreement'
+        message: 'Only the contractor can accept this agreement'
       });
     }
 
@@ -404,49 +530,34 @@ const acceptAgreement = async (req, res) => {
     if (!agreement.otp || agreement.otp !== otp) {
       return res.status(400).json({
         status: 'error',
-        message: 'Invalid OTP'
+        message: 'Invalid or expired OTP'
       });
     }
 
-    // Check if OTP is expired (5 minutes)
-    const now = Date.now();
-    const otpExpiryTime = 5 * 60 * 1000; // 5 minutes
-    if (now - agreement.otpGeneratedAt > otpExpiryTime) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'OTP has expired'
-      });
-    }
-
-    // Update agreement status to active and clear OTP so it cannot be reused
+    // Update status to active
     agreement.status = 'active';
-    agreement.acceptedAt = Date.now();
-    agreement.otp = undefined;
+    agreement.acceptedAt = new Date();
+    agreement.otp = undefined; // Clear OTP after use
     agreement.otpGeneratedAt = undefined;
     await agreement.save();
 
-    // Get farmer user details
-    const { User } = require('../models/User');
-    const farmerUser = await User.findById(agreement.farmer);
-
-    // Create notification for the contractor
-    const { Notification } = require('../models/Notification');
+    // Create notification for farmer
     const notification = new Notification({
-      userId: agreement.contractor.toString(),
+      userId: agreement.farmer._id.toString(),
       senderId: userId,
-      type: 'agreement_approved',
-      title: 'Agreement Accepted',
-      message: `Farmer ${farmerUser ? farmerUser.name : 'Unknown'} has accepted the agreement.`,
+      type: 'agreement_accepted',
+      title: 'Agreement Activated',
+      message: `${agreement.contractor.name} has activated the agreement for ${agreement.cropType}.`,
       referenceId: agreement._id,
       referenceType: 'agreement'
     });
 
     await notification.save();
 
-    // Emit real-time notification if contractor is online
+    // Emit real-time notification
     if (req.app && req.app.get('io')) {
       const io = req.app.get('io');
-      io.to(agreement.contractor.toString()).emit('notification:new', notification);
+      io.to(agreement.farmer._id.toString()).emit('notification:new', notification);
     }
 
     res.status(200).json({
@@ -463,13 +574,14 @@ const acceptAgreement = async (req, res) => {
   }
 };
 
-// Initiate a mock payment for an agreement (contractor pays farmer)
+// Initiate mock payment
 const initiateMockPayment = async (req, res) => {
   try {
     const { agreementId } = req.params;
     const userId = req.user.userId;
 
-    const agreement = await Agreement.findById(agreementId);
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+
     if (!agreement) {
       return res.status(404).json({
         status: 'error',
@@ -477,82 +589,61 @@ const initiateMockPayment = async (req, res) => {
       });
     }
 
-    // Only the contractor on an active agreement can initiate payment
-    if (userId.toString() !== agreement.contractor.toString()) {
-      await logFraudAlert({
-        userId,
-        type: 'payment_abuse',
-        severity: 'medium',
-        title: 'Unauthorized payment attempt',
-        description: 'User attempted to initiate payment on an agreement they do not own as contractor.',
-        context: { agreementId }
-      });
+    // Only contractor can initiate payment
+    if (agreement.contractor._id.toString() !== userId) {
       return res.status(403).json({
         status: 'error',
         message: 'Only the contractor can initiate payment for this agreement'
       });
     }
 
-    if (agreement.status !== 'active' && agreement.status !== 'completed') {
-      await logFraudAlert({
-        userId,
-        type: 'payment_abuse',
-        severity: 'low',
-        title: 'Payment attempted in invalid agreement state',
-        description: `Payment attempted while agreement status is "${agreement.status}".`,
-        context: { agreementId, status: agreement.status }
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Payment can only be initiated for active or completed agreements'
-      });
-    }
-
-    // Simulate a payment being processed and completed
+    // Update payment status
     agreement.paymentStatus = 'paid';
-    agreement.lastPaymentAt = Date.now();
+    agreement.lastPaymentAt = new Date();
     await agreement.save();
 
-    const mockPayment = {
-      id: `MOCK-${Date.now()}`,
-      amount: agreement.salary,
-      status: 'completed',
-      method: 'mock_gateway',
-      processedAt: new Date().toISOString()
-    };
+    // Create notification for farmer
+    const notification = new Notification({
+      userId: agreement.farmer._id.toString(),
+      senderId: userId,
+      type: 'payment_update',
+      title: 'Payment Completed',
+      message: `Payment for agreement on ${agreement.cropType} has been completed.`,
+      referenceId: agreement._id,
+      referenceType: 'agreement'
+    });
 
-    return res.status(200).json({
+    await notification.save();
+
+    // Emit real-time notification
+    if (req.app && req.app.get('io')) {
+      const io = req.app.get('io');
+      io.to(agreement.farmer._id.toString()).emit('notification:new', notification);
+    }
+
+    res.status(200).json({
       status: 'success',
-      message: 'Mock payment processed successfully',
-      data: {
-        agreement,
-        payment: mockPayment
-      }
+      message: 'Payment initiated successfully',
+      data: { agreement }
     });
   } catch (error) {
     console.error('Initiate mock payment error:', error);
-    return res.status(500).json({
+    res.status(500).json({
       status: 'error',
-      message: 'Server error while processing mock payment'
+      message: 'Server error while initiating payment'
     });
   }
 };
 
-// Submit rating & review after contract completion
+// Submit rating after agreement completion
 const submitRating = async (req, res) => {
   try {
     const { agreementId } = req.params;
     const { rating, review } = req.body;
     const userId = req.user.userId;
 
-    if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Rating must be a number between 1 and 5'
-      });
-    }
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
 
-    const agreement = await Agreement.findById(agreementId);
     if (!agreement) {
       return res.status(404).json({
         status: 'error',
@@ -560,64 +651,32 @@ const submitRating = async (req, res) => {
       });
     }
 
-    // Ratings are only allowed after the contract is completed
-    if (agreement.status !== 'completed') {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Ratings can only be submitted after the contract is completed'
-      });
-    }
-
-    const userIdStr = userId.toString();
-    const farmerIdStr = agreement.farmer.toString();
-    const contractorIdStr = agreement.contractor.toString();
-
-    if (userIdStr !== farmerIdStr && userIdStr !== contractorIdStr) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'You are not authorized to rate this agreement'
-      });
-    }
-
-    // Contractor rates the farmer
-    if (userIdStr === contractorIdStr) {
-      if (agreement.farmerRating) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'You have already rated this farmer'
-        });
-      }
-      agreement.farmerRating = rating;
-      agreement.farmerReview = review;
-    }
-
-    // Farmer rates the contractor
-    if (userIdStr === farmerIdStr) {
-      if (agreement.contractorRating) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'You have already rated this contractor'
-        });
-      }
+    // Determine which rating to update based on user
+    if (agreement.farmer._id.toString() === userId) {
+      // Farmer rating the contractor
       agreement.contractorRating = rating;
       agreement.contractorReview = review;
+    } else if (agreement.contractor._id.toString() === userId) {
+      // Contractor rating the farmer
+      agreement.farmerRating = rating;
+      agreement.farmerReview = review;
+    } else {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not part of this agreement'
+      });
     }
 
-    agreement.updatedAt = Date.now();
     await agreement.save();
 
-    // Fraud pattern: abnormal rating behaviour
-    const role = userIdStr === contractorIdStr ? 'contractor' : 'farmer';
-    await detectAbnormalRatingBehaviour({ userId, role, rating });
-
-    return res.status(200).json({
+    res.status(200).json({
       status: 'success',
       message: 'Rating submitted successfully',
       data: { agreement }
     });
   } catch (error) {
     console.error('Submit rating error:', error);
-    return res.status(500).json({
+    res.status(500).json({
       status: 'error',
       message: 'Server error while submitting rating'
     });
@@ -626,11 +685,12 @@ const submitRating = async (req, res) => {
 
 module.exports = {
   createAgreement,
+  sendAgreement,
   getUserAgreements,
   getAgreementById,
+  updateAgreement,
   updateAgreementStatus,
   signAgreement,
-  updateAgreement,
   sendOtp,
   acceptAgreement,
   initiateMockPayment,

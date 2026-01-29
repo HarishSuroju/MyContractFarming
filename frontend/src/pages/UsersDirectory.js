@@ -124,8 +124,16 @@ const UsersDirectory = () => {
       
       if (response.data && response.data.data && response.data.data.users) {
         console.log('Processing', response.data.data.users.length, 'users');
+        console.log('Current user ID:', currentUserId);
+        
         // Filter out the current user and transform the API response to match our component's expected format
-        const filteredUsers = response.data.data.users.filter(user => user.id !== currentUserId);
+        const filteredUsers = response.data.data.users.filter(user => {
+          const userId = user.id || user._id;
+          const shouldFilter = userId && currentUserId && userId.toString() === currentUserId.toString();
+          console.log('User filter check:', { userId, currentUserId, shouldFilter });
+          return !shouldFilter;
+        });
+        
         console.log('After filtering out current user:', filteredUsers.length, 'users');
         
         const transformedUsers = filteredUsers.map(user => {

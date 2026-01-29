@@ -12,7 +12,19 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['connection_request', 'interest_received', 'agreement_sent', 'agreement_approved', 'agreement_rejected', 'payment_update', 'rating_received'],
+    enum: [
+      'connection_request', 
+      'interest_received', 
+      'agreement_sent', 
+      'agreement_edited',
+      'agreement_accepted',
+      'agreement_rejected',
+      'agreement_confirmed',
+      'agreement_approved', 
+      'agreement_rejected', 
+      'payment_update', 
+      'rating_received'
+    ],
     required: true
   },
   title: {

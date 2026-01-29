@@ -196,14 +196,19 @@ const Requests = () => {
           isHighlighted ? 'ring-4 ring-blue-500' : ''
         } ${
           request.status === 'pending' 
-            ? 'border-gray-200 bg-white' 
+            ? 'border-gray-200 bg-white hover:bg-gray-50' 
             : request.status === 'accepted'
-              ? 'border-green-200 bg-green-50'
-              : 'border-red-200 bg-red-50'
+              ? 'border-green-200 bg-green-50 hover:bg-green-100'
+              : 'border-red-200 bg-red-50 hover:bg-red-100'
         } transition-all duration-300`}
       >
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1" onClick={() => {
+            // Determine the other user's ID based on whether this is an incoming or outgoing request
+            const currentUserId = localStorage.getItem('userId');
+            const otherUserId = request.senderId === currentUserId ? request.receiverId : request.senderId;
+            navigate(`/communication/${otherUserId}`);
+          }} style={{ cursor: 'pointer' }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-lg">
                 {request.senderName?.charAt(0).toUpperCase()}
@@ -267,7 +272,10 @@ const Requests = () => {
             <div className="flex flex-col sm:flex-row gap-2 self-start">
               <button
                 id={`accept-${request._id}`}
-                onClick={() => handleAcceptRequest(request)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the card click
+                  handleAcceptRequest(request);
+                }}
                 disabled={loading}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
               >
@@ -275,7 +283,10 @@ const Requests = () => {
               </button>
               <button
                 id={`reject-${request._id}`}
-                onClick={() => handleRejectRequest(request)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the card click
+                  handleRejectRequest(request);
+                }}
                 disabled={loading}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
               >
@@ -292,54 +303,7 @@ const Requests = () => {
                   : t('Rejected')}
               </span>
               
-              {request.status === 'accepted' && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      // Determine the other user's ID based on whether this is an incoming or outgoing request
-                      const currentUserId = localStorage.getItem('userId');
-                      const otherUserId = request.senderId === currentUserId ? request.receiverId : request.senderId;
-                      navigate(`/communication/${otherUserId}`);
-                    }}
-                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-xs font-medium"
-                  >
-                    Audio Call
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Determine the other user's ID based on whether this is an incoming or outgoing request
-                      const currentUserId = localStorage.getItem('userId');
-                      const otherUserId = request.senderId === currentUserId ? request.receiverId : request.senderId;
-                      navigate(`/communication/${otherUserId}`);
-                    }}
-                    className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-xs font-medium"
-                  >
-                    Video Call
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Navigate to create agreement page
-                      const currentUserId = localStorage.getItem('userId');
-                      const otherUserId = request.senderId === currentUserId ? request.receiverId : request.senderId;
-                      navigate(`/agreement-creation?userId=${otherUserId}`);
-                    }}
-                    className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-xs font-medium"
-                  >
-                    Create Agreement
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Navigate to user profile page
-                      const currentUserId = localStorage.getItem('userId');
-                      const otherUserId = request.senderId === currentUserId ? request.receiverId : request.senderId;
-                      navigate(`/user-profile/${otherUserId}`);
-                    }}
-                    className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs font-medium"
-                  >
-                    View Profile
-                  </button>
-                </div>
-              )}
+              {/* All action buttons removed as per requirement */}
             </div>
           )}
         </div>

@@ -31,6 +31,8 @@ import ProposalCreation from './pages/ProposalCreation';
 import ProposalStatus from './pages/ProposalStatus';
 import Unauthorized from './pages/Unauthorized';
 import AgreementManager from './pages/AgreementManager';
+import AgreementReport from './pages/AgreementReport';
+import AgreementEdit from './pages/AgreementEdit';
 import ConnectionRequests from './pages/ConnectionRequests';
 import Requests from './pages/Requests';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -67,10 +69,13 @@ function App() {
             <Route path="/proposal-status/:userId" element={<ProposalStatus />} />
             <Route path="/agreement-manager" element={<AgreementManager />} />
             <Route path="/agreement-manager/:agreementId" element={<AgreementManager />} />
+            <Route path="/agreement-report/:agreementId" element={<AgreementReport />} />
+            <Route path="/agreement-edit/:agreementId" element={<AgreementEdit />} />
             <Route path="/connection-requests" element={<ConnectionRequests />} />
             <Route path="/dashboard/requests" element={<Requests />} />
             <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/users-directory" element={<UsersDirectory />} />
           </Routes>
         </div>
       </Router>
