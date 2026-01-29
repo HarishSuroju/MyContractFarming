@@ -64,33 +64,42 @@ export const profileAPI = {
   // Create a separate axios instance for public API calls to avoid token attachment
   getAllUsers: () => {
     // Create a temporary axios instance without the auth interceptor
+    // Remove '/api' from the base URL if it exists to avoid double nesting
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
+    
     const publicApi = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+      baseURL: cleanBaseUrl,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    return publicApi.get('/users/directory');
+    return publicApi.get('/api/users/directory');
   },
-  
+
   // Get a single user's profile by ID
   getUserProfile: (userId) => {
     // Create a temporary axios instance without the auth interceptor
+    // Remove '/api' from the base URL if it exists to avoid double nesting
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
+    
     const publicApi = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+      baseURL: cleanBaseUrl,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    return publicApi.get(`/profile/user/${userId}`);
+    return publicApi.get(`/api/profile/user/${userId}`);
   }
 };
 
 // Agreement API calls
 export const agreementAPI = {
   createAgreement: (agreementData) => api.post('/agreements', agreementData),
+  sendAgreement: (agreementId) => api.put(`/agreements/${agreementId}/send`),
   getUserAgreements: () => api.get('/agreements'),
   getAgreementById: (agreementId) => api.get(`/agreements/${agreementId}`),
   updateAgreement: (agreementId, agreementData) => api.put(`/agreements/${agreementId}`, agreementData),

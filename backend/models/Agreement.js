@@ -46,8 +46,20 @@ const agreementSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['draft', 'pending', 'accepted', 'rejected', 'active', 'completed', 'terminated'],
-    default: 'pending'
+    enum: [
+      'draft', 
+      'pending', 
+      'sent_to_contractor', 
+      'edited_by_contractor', 
+      'accepted_by_contractor', 
+      'rejected_by_contractor', 
+      'agreement_confirmed', 
+      'agreement_rejected', 
+      'active', 
+      'completed', 
+      'terminated'
+    ],
+    default: 'draft'
   },
   farmerSignature: {
     type: Boolean,

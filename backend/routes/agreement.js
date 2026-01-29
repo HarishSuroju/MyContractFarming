@@ -1,11 +1,12 @@
 const express = require('express');
 const {
   createAgreement,
+  sendAgreement,
   getUserAgreements,
   getAgreementById,
+  updateAgreement,
   updateAgreementStatus,
   signAgreement,
-  updateAgreement,
   sendOtp,
   acceptAgreement,
   initiateMockPayment,
@@ -21,6 +22,14 @@ router.post(
   authenticateToken,
   authorizeRoles('farmer', 'contractor'),
   createAgreement
+);
+
+// Send agreement to contractor
+router.put(
+  '/:agreementId/send',
+  authenticateToken,
+  authorizeRoles('farmer'),
+  sendAgreement
 );
 
 router.get(
@@ -68,7 +77,7 @@ router.post(
 router.post(
   '/:agreementId/accept',
   authenticateToken,
-  authorizeRoles('farmer'),
+  authorizeRoles('contractor'),
   acceptAgreement
 );
 

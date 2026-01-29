@@ -225,22 +225,26 @@
     "farmVisitRequested": "Farm visit requested. We'll coordinate the details with both parties."
   },
   "agreement": {
-    "manager": {
-      "createTitle": "Create New Agreement",
-      "editTitle": "Edit Agreement",
-      "viewTitle": "View Agreement"
+    "report": {
+      "viewing": "Agreement Report"
     },
-    "fields": {
-      "farmer": "Farmer",
-      "contractor": "Contractor",
-      "crop": "Crop",
-      "season": "Season",
-      "quantity": "Quantity",
-      "priceTerms": "Price Terms",
-      "deliveryTimeline": "Delivery Timeline",
-      "agreementText": "Agreement Terms"
+    "edit": {
+      "title": "Edit Agreement"
+    },
+    "actions": {
+      "contractorActions": "Contractor Actions",
+      "farmerActions": "Farmer Actions",
+      "activation": "Activation Actions"
     },
     "buttons": {
+      "edit": "Edit Agreement",
+      "accept": "Accept Agreement",
+      "reject": "Reject Agreement",
+      "confirm": "Confirm Agreement",
+      "activate": "Activate Agreement",
+      "save": "Save Changes",
+      "cancel": "Cancel",
+      "back": "Back to Previous Page",
       "saveDraft": "Save Draft",
       "sendToFarmer": "Send to Farmer",
       "acceptAgreement": "Accept Agreement",
@@ -250,26 +254,34 @@
       "reject": "Reject"
     },
     "otp": {
-      "modalTitle": "Accept Agreement",
-      "instructions": "An OTP has been generated. Please enter it to confirm your acceptance of this agreement.",
+      "modalTitle": "OTP Verification",
+      "instructions": "Please enter the OTP sent to complete the agreement activation.",
       "inputLabel": "Enter OTP",
-      "confirmButton": "Confirm Acceptance",
+      "confirmButton": "Confirm",
       "cancelButton": "Cancel"
     },
-    "adminSection": {
-      "title": "Admin Approval",
-      "approvalStatus": "Approval Status",
-      "approved": "Approved",
-      "pending": "Pending",
-      "approve": "Approve Agreement",
-      "reject": "Reject Agreement"
+    "placeholders": {
+      "inputsSupplied": "Enter inputs separated by commas"
     },
-    "status": {
-      "draft": "Draft",
-      "sent": "Sent",
-      "active": "Active",
-      "completed": "Completed",
-      "rejected": "Rejected"
+    "hints": {
+      "inputsFormat": "Separate multiple inputs with commas"
+    },
+    "noTerms": "No terms specified",
+    "errors": {
+      "notLoggedIn": "You must be logged in to view this page",
+      "fetchFailed": "Failed to fetch agreement. Please try again.",
+      "notFound": "Agreement not found",
+      "statusUpdateFailed": "Failed to update agreement status. Please try again.",
+      "otpSendFailed": "Failed to send OTP. Please try again.",
+      "invalidOtp": "Invalid OTP. Please try again.",
+      "updateFailed": "Failed to update agreement. Please try again.",
+      "noPermission": "You don't have permission to create an agreement.",
+      "saveFailed": "Failed to save agreement.",
+      "sendFailed": "Failed to send agreement to farmer.",
+      "otpGenerationFailed": "Failed to generate OTP.",
+      "acceptFailed": "Failed to accept agreement.",
+      "changesRequestFailed": "Failed to request changes.",
+      "adminActionFailed": "Failed to update admin approval status."
     },
     "success": {
       "saved": "Agreement saved successfully!",
@@ -278,19 +290,46 @@
       "accepted": "Agreement accepted successfully!",
       "changesRequested": "Changes requested successfully!",
       "adminApproved": "Agreement approved by admin!",
-      "adminRejected": "Agreement rejected by admin!"
+      "adminRejected": "Agreement rejected by admin!",
+      "updated": "Agreement updated successfully!"
     },
-    "errors": {
-      "noPermission": "You don't have permission to create an agreement.",
-      "fetchFailed": "Failed to fetch agreement details.",
-      "saveFailed": "Failed to save agreement.",
-      "sendFailed": "Failed to send agreement to farmer.",
-      "otpGenerationFailed": "Failed to generate OTP.",
-      "invalidOtp": "Invalid OTP. Please try again.",
-      "acceptFailed": "Failed to accept agreement.",
-      "changesRequestFailed": "Failed to request changes.",
-      "adminActionFailed": "Failed to update admin approval status.",
-      "notFound": "Agreement not found."
+    "fields": {
+      "farmer": "Farmer",
+      "contractor": "Contractor",
+      "crop": "Crop",
+      "season": "Season",
+      "quantity": "Quantity",
+      "priceTerms": "Price Terms",
+      "deliveryTimeline": "Delivery Timeline",
+      "agreementText": "Agreement Terms",
+      "inputsSupplied": "Inputs Supplied"
+    },
+    "manager": {
+      "createTitle": "Create New Agreement",
+      "editTitle": "Edit Agreement",
+      "viewTitle": "View Agreement"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "sent_to_contractor": "Sent to Contractor",
+      "edited_by_contractor": "Edited by Contractor",
+      "accepted_by_contractor": "Accepted by Contractor",
+      "rejected_by_contractor": "Rejected by Contractor",
+      "agreement_confirmed": "Agreement Confirmed",
+      "agreement_rejected": "Agreement Rejected",
+      "active": "Active",
+      "completed": "Completed",
+      "terminated": "Terminated",
+      "sent": "Sent"
+    },
+    "adminSection": {
+      "title": "Admin Approval",
+      "approvalStatus": "Approval Status",
+      "approved": "Approved",
+      "pending": "Pending",
+      "approve": "Approve Agreement",
+      "reject": "Reject Agreement"
     },
     "messages": {
       "pdfDownload": "Generating PDF... (Feature coming soon)",
@@ -512,5 +551,23 @@
     "backButton": "Back",
     "signingIn": "Signing in...",
     "loginButton": "Login"
-  }
+  },
+  "Title": "Agreement Summary",
+  "Description": "Review the proposed terms and decide if you want to proceed with the agreement.",
+  "Proposal Details": "Proposal Details",
+  "Crop": "Crop",
+  "Land Area": "Land Area",
+  "Duration": "Duration",
+  "Monthly Payment": "Monthly Payment",
+  "Inputs Provided": "Inputs Provided",
+  "Benefits": "Benefits",
+  "benefit 1": "Secure contract with transparent terms",
+  "benefit 2": "Fair pricing guaranteed",
+  "benefit 3": "Platform mediation for disputes",
+  "benefit 4": "Easy tracking and monitoring",
+  "Note": "Note:",
+  "Note Text": "This is a simplified view. The final agreement will have legal terms and conditions.",
+  "Agree": "Agree",
+  "Not Interested": "Not Interested",
+  "Back to Previous Page": "Back to Previous Page"
 }
