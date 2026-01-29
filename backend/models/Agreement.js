@@ -57,7 +57,10 @@ const agreementSchema = new mongoose.Schema({
       'agreement_rejected', 
       'active', 
       'completed', 
-      'terminated'
+      'terminated',
+      'edited_by_farmer',
+      'accepted_by_farmer',
+      'rejected_by_farmer'
     ],
     default: 'draft'
   },

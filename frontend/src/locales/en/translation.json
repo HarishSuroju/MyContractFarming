@@ -353,9 +353,93 @@
       "noteText": "This is a simplified view. The final agreement will have legal terms and conditions.",
       "agree": "Agree",
       "notInterested": "Not Interested",
-      "back": "Back",
+      "back": "Back to Previous Page",
       "agreed": "Agreement confirmed! The contract will be processed through the platform.",
       "notInterested": "You've declined the agreement. The other party will be notified."
+    },
+    "edit": {
+      "title": "Edit Agreement"
+    },
+    "actions": {
+      "contractorActions": "Contractor Actions",
+      "farmerActions": "Farmer Actions",
+      "activation": "Activation Actions"
+    },
+    "buttons": {
+      "edit": "Edit Agreement",
+      "accept": "Accept Agreement",
+      "reject": "Reject Agreement",
+      "confirm": "Confirm Agreement",
+      "activate": "Activate Agreement",
+      "save": "Save Changes",
+      "cancel": "Cancel",
+      "back": "Back to Previous Page",
+      "saveDraft": "Save Draft",
+      "sendToFarmer": "Send to Farmer",
+      "acceptAgreement": "Accept Agreement",
+      "requestChanges": "Request Changes",
+      "downloadPdf": "Download Agreement PDF",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "otp": {
+      "modalTitle": "OTP Verification",
+      "instructions": "Please enter the OTP sent to complete the agreement activation.",
+      "inputLabel": "Enter OTP",
+      "confirmButton": "Confirm",
+      "cancelButton": "Cancel"
+    },
+    "placeholders": {
+      "inputsSupplied": "Enter inputs separated by commas"
+    },
+    "hints": {
+      "inputsFormat": "Separate multiple inputs with commas"
+    },
+    "noTerms": "No terms specified",
+    "errors": {
+      "notLoggedIn": "You must be logged in to view this page",
+      "fetchFailed": "Failed to fetch agreement. Please try again.",
+      "notFound": "Agreement not found",
+      "statusUpdateFailed": "Failed to update agreement status. Please try again.",
+      "otpSendFailed": "Failed to send OTP. Please try again.",
+      "invalidOtp": "Invalid OTP. Please try again.",
+      "updateFailed": "Failed to update agreement. Please try again.",
+      "noPermission": "You don't have permission to create an agreement.",
+      "saveFailed": "Failed to save agreement.",
+      "sendFailed": "Failed to send agreement to farmer.",
+      "otpGenerationFailed": "Failed to generate OTP.",
+      "acceptFailed": "Failed to accept agreement.",
+      "changesRequestFailed": "Failed to request changes.",
+      "adminActionFailed": "Failed to update admin approval status."
+    },
+    "success": {
+      "saved": "Agreement saved successfully!",
+      "sent": "Agreement sent to farmer successfully!",
+      "otpGenerated": "OTP generated successfully!",
+      "accepted": "Agreement accepted successfully!",
+      "changesRequested": "Changes requested successfully!",
+      "adminApproved": "Agreement approved by admin!",
+      "adminRejected": "Agreement rejected by admin!",
+      "updated": "Agreement updated successfully!"
+    },
+    "fields": {
+      "farmer": "Farmer",
+      "contractor": "Contractor",
+      "crop": "Crop",
+      "season": "Season",
+      "quantity": "Quantity",
+      "priceTerms": "Price Terms",
+      "deliveryTimeline": "Delivery Timeline",
+      "agreementText": "Agreement Terms",
+      "inputsSupplied": "Inputs Supplied"
+    },
+    "manager": {
+      "createTitle": "Create New Agreement",
+      "editTitle": "Edit Agreement",
+      "viewTitle": "View Agreement"
+    },
+    "report": {
+      "viewing": "Agreement Report"
     }
   },
   "interest": {
@@ -551,23 +635,5 @@
     "backButton": "Back",
     "signingIn": "Signing in...",
     "loginButton": "Login"
-  },
-  "Title": "Agreement Summary",
-  "Description": "Review the proposed terms and decide if you want to proceed with the agreement.",
-  "Proposal Details": "Proposal Details",
-  "Crop": "Crop",
-  "Land Area": "Land Area",
-  "Duration": "Duration",
-  "Monthly Payment": "Monthly Payment",
-  "Inputs Provided": "Inputs Provided",
-  "Benefits": "Benefits",
-  "benefit 1": "Secure contract with transparent terms",
-  "benefit 2": "Fair pricing guaranteed",
-  "benefit 3": "Platform mediation for disputes",
-  "benefit 4": "Easy tracking and monitoring",
-  "Note": "Note:",
-  "Note Text": "This is a simplified view. The final agreement will have legal terms and conditions.",
-  "Agree": "Agree",
-  "Not Interested": "Not Interested",
-  "Back to Previous Page": "Back to Previous Page"
+  }
 }

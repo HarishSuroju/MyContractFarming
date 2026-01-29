@@ -54,6 +54,10 @@ const createAgreement = async (req, res) => {
       });
     }
 
+    // Determine who is the sender (creator) and set initial status
+    const senderId = userId;
+    const isContractorSender = userId === contractor;
+    
     // Create new agreement
     console.log('Creating agreement document...');
     const agreement = new Agreement({
@@ -66,8 +70,13 @@ const createAgreement = async (req, res) => {
       salary,
       inputsSupplied: inputsSupplied || [],
       season,
-      terms
+      terms,
+      // Set status based on who is creating the agreement
+      status: isContractorSender ? 'pending' : 'pending'
     });
+
+    console.log('Is contractor sender?', isContractorSender);
+    console.log('Initial status:', agreement.status);
 
     console.log('Saving agreement...');
     await agreement.save();
@@ -114,6 +123,83 @@ const createAgreement = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Server error while creating agreement: ' + error.message
+    });
+  }
+};
+
+// Send agreement to farmer (change status to pending for farmer review)
+const sendAgreementToFarmer = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const userId = req.user.userId;
+
+    const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
+    
+    if (!agreement) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Agreement not found'
+      });
+    }
+
+    // Only the contractor can send the agreement to farmer
+    if (agreement.contractor._id.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only the contractor can send this agreement to farmer'
+      });
+    }
+
+    // Determine the appropriate status based on current status
+    // If it's sent_to_contractor (farmer sent to contractor), change to pending
+    // If it's edited_by_contractor (contractor edited farmer's agreement), change to pending
+    if (agreement.status === 'sent_to_contractor' || agreement.status === 'edited_by_contractor') {
+      agreement.status = 'pending';
+    } else {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Cannot send this agreement to farmer in its current state'
+      });
+    }
+    
+    await agreement.save();
+
+    // Create notification for farmer
+    let notificationMessage = `${agreement.contractor.name} has sent you an agreement for ${agreement.cropType}.`;
+    
+    // Customize message based on current status
+    if (agreement.status === 'edited_by_contractor') {
+      notificationMessage = `${agreement.contractor.name} has sent back the edited agreement for ${agreement.cropType}.`;
+    }
+    
+    const notification = new Notification({
+      userId: agreement.farmer._id.toString(),
+      senderId: userId,
+      type: 'agreement_sent',
+      title: 'Agreement Update',
+      message: notificationMessage,
+      referenceId: agreement._id,
+      referenceType: 'agreement'
+    });
+
+    await notification.save();
+
+    // Emit real-time notification
+    if (req.app && req.app.get('io')) {
+      const io = req.app.get('io');
+      io.to(agreement.farmer._id.toString()).emit('notification:new', notification);
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Agreement sent to farmer successfully',
+      data: { agreement }
+    });
+  } catch (error) {
+    console.error('Send agreement to farmer error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error while sending agreement to farmer'
     });
   }
 };
@@ -257,8 +343,16 @@ const updateAgreement = async (req, res) => {
       });
     }
 
-    // Only the contractor can edit the agreement when it's in sent_to_contractor status
-    if (agreement.contractor._id.toString() !== userId || agreement.status !== 'sent_to_contractor') {
+    // Check if user is authorized to edit this agreement
+    const isContractor = agreement.contractor._id.toString() === userId;
+    const isFarmer = agreement.farmer._id.toString() === userId;
+    
+    // Contractors can edit when status is pending (agreement sent by farmer)
+    // Farmers can edit when status is pending (agreement sent by contractor)
+    const canEdit = (isContractor && agreement.status === 'pending') || 
+                    (isFarmer && agreement.status === 'pending');
+    
+    if (!canEdit) {
       return res.status(403).json({
         status: 'error',
         message: 'You are not authorized to edit this agreement'
@@ -274,13 +368,25 @@ const updateAgreement = async (req, res) => {
 
     await agreement.save();
 
-    // Create notification for farmer
+    // Create notification for the other party
+    let notificationUserId, notificationMessage;
+    
+    if (isContractor) {
+      // Contractor edited, notify farmer
+      notificationUserId = agreement.farmer._id.toString();
+      notificationMessage = `${agreement.contractor.name} has edited the agreement for ${agreement.cropType}.`;
+    } else {
+      // Farmer edited, notify contractor
+      notificationUserId = agreement.contractor._id.toString();
+      notificationMessage = `${agreement.farmer.name} has edited the agreement for ${agreement.cropType}.`;
+    }
+    
     const notification = new Notification({
-      userId: agreement.farmer._id.toString(),
+      userId: notificationUserId,
       senderId: userId,
       type: 'agreement_edited',
       title: 'Agreement Edited',
-      message: `${agreement.contractor.name} has edited the agreement for ${agreement.cropType}.`,
+      message: notificationMessage,
       referenceId: agreement._id,
       referenceType: 'agreement'
     });
@@ -290,7 +396,7 @@ const updateAgreement = async (req, res) => {
     // Emit real-time notification
     if (req.app && req.app.get('io')) {
       const io = req.app.get('io');
-      io.to(agreement.farmer._id.toString()).emit('notification:new', notification);
+      io.to(notificationUserId).emit('notification:new', notification);
     }
 
     res.status(200).json({
@@ -341,10 +447,46 @@ const updateAgreementStatus = async (req, res) => {
         recipientUserId = agreement.contractor._id.toString();
         notificationType = 'agreement_rejected';
         notificationMessage = `${agreement.farmer.name} has rejected the agreement for ${agreement.cropType}.`;
+      } else if (status === 'accepted_by_farmer' && agreement.status === 'pending') {
+        // Farmer accepts agreement sent by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_accepted';
+        notificationMessage = `${agreement.farmer.name} has accepted the agreement for ${agreement.cropType}.`;
+      } else if (status === 'rejected_by_farmer' && agreement.status === 'pending') {
+        // Farmer rejects agreement sent by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.farmer.name} has rejected the agreement for ${agreement.cropType}.`;
+      } else if (status === 'edited_by_farmer' && agreement.status === 'pending') {
+        // Farmer edits agreement sent by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_edited';
+        notificationMessage = `${agreement.farmer.name} has edited the agreement for ${agreement.cropType}.`;
       }
     } else if (agreement.contractor._id.toString() === userId) {
       // Contractor actions
-      if (status === 'accepted_by_contractor' && agreement.status === 'sent_to_contractor') {
+      if (status === 'accepted_by_contractor' && agreement.status === 'pending') {
+        // Contractor accepts agreement sent by farmer
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_accepted';
+        notificationMessage = `${agreement.contractor.name} has accepted the agreement for ${agreement.cropType}.`;
+      } else if (status === 'rejected_by_contractor' && agreement.status === 'pending') {
+        // Contractor rejects agreement sent by farmer
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.contractor.name} has rejected the agreement for ${agreement.cropType}.`;
+      } else if (status === 'edited_by_contractor' && agreement.status === 'pending') {
+        // Contractor edits agreement sent by farmer
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_edited';
+        notificationMessage = `${agreement.contractor.name} has edited the agreement for ${agreement.cropType}.`;
+      } else if (status === 'accepted_by_contractor' && agreement.status === 'sent_to_contractor') {
         validStatusTransition = true;
         recipientUserId = agreement.farmer._id.toString();
         notificationType = 'agreement_accepted';
@@ -359,6 +501,30 @@ const updateAgreementStatus = async (req, res) => {
         recipientUserId = agreement.farmer._id.toString();
         notificationType = 'agreement_edited';
         notificationMessage = `${agreement.contractor.name} has edited the agreement for ${agreement.cropType}.`;
+      } else if (status === 'accepted_by_farmer' && agreement.status === 'edited_by_contractor') {
+        // Farmer accepts agreement edited by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_accepted';
+        notificationMessage = `${agreement.farmer.name} has accepted the edited agreement for ${agreement.cropType}.`;
+      } else if (status === 'rejected_by_farmer' && agreement.status === 'edited_by_contractor') {
+        // Farmer rejects agreement edited by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.farmer.name} has rejected the edited agreement for ${agreement.cropType}.`;
+      } else if (status === 'agreement_confirmed' && agreement.status === 'accepted_by_farmer') {
+        // Contractor confirms farmer's acceptance
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_confirmed';
+        notificationMessage = `${agreement.contractor.name} has confirmed the agreement for ${agreement.cropType}.`;
+      } else if (status === 'agreement_rejected' && agreement.status === 'accepted_by_farmer') {
+        // Contractor rejects farmer's acceptance
+        validStatusTransition = true;
+        recipientUserId = agreement.farmer._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.contractor.name} has rejected the agreement for ${agreement.cropType}.`;
       }
     }
 
@@ -686,6 +852,7 @@ const submitRating = async (req, res) => {
 module.exports = {
   createAgreement,
   sendAgreement,
+  sendAgreementToFarmer,
   getUserAgreements,
   getAgreementById,
   updateAgreement,

@@ -70,8 +70,13 @@ const AgreementEdit = () => {
       
       const response = await agreementAPI.updateAgreement(agreementId, updatedData);
       
-      // Update status to indicate it was edited by contractor
-      await agreementAPI.updateAgreementStatus(agreementId, 'edited_by_contractor');
+      // Determine who is editing and update status accordingly
+      const userRole = localStorage.getItem('userRole');
+      let newStatus = 'edited_by_contractor';
+      if (userRole === 'farmer') {
+        newStatus = 'edited_by_farmer';
+      }
+      await agreementAPI.updateAgreementStatus(agreementId, newStatus);
       
       setSuccess(t('agreement.success.updated'));
       
@@ -80,7 +85,7 @@ const AgreementEdit = () => {
         navigate(`/agreement-report/${agreementId}`);
       }, 1500);
     } catch (err) {
-      setError(t('agreement.errors.updateFailed'));
+      setError(t('Agreement Update Failed'));
     }
   };
 
@@ -97,8 +102,8 @@ const AgreementEdit = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500">{t('agreement.errors.notFound')}</p>
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             {t('back')}
@@ -114,7 +119,7 @@ const AgreementEdit = () => {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
-              {t('agreement.edit.title')}
+              {t('Edit Agreement')}
             </h1>
             <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
               {t(`agreement.status.${agreement.status}`)}
@@ -137,7 +142,7 @@ const AgreementEdit = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('agreement.fields.crop')} *
+                  {t('Crop')}
                 </label>
                 <input
                   type="text"
@@ -151,7 +156,7 @@ const AgreementEdit = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('agreement.fields.season')} *
+                  {t('Season')}
                 </label>
                 <input
                   type="text"
@@ -167,7 +172,7 @@ const AgreementEdit = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('agreement.fields.quantity')} *
+                  {t('Quantity')}
                 </label>
                 <input
                   type="number"
@@ -183,7 +188,7 @@ const AgreementEdit = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('agreement.fields.priceTerms')} *
+                  {t('Price Terms')}
                 </label>
                 <input
                   type="number"
@@ -200,7 +205,7 @@ const AgreementEdit = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('agreement.fields.deliveryTimeline')} *
+                {t('Delivery Timeline')}
               </label>
               <input
                 type="text"
@@ -214,7 +219,7 @@ const AgreementEdit = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('agreement.fields.inputsSupplied')}
+                {t('Inputs Supplied')}
               </label>
               <input
                 type="text"
@@ -224,12 +229,12 @@ const AgreementEdit = () => {
                 placeholder={t('agreement.placeholders.inputsSupplied')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               />
-              <p className="mt-1 text-sm text-gray-500">{t('agreement.hints.inputsFormat')}</p>
+              <p className="mt-1 text-sm text-gray-500">{t('Inputs Format Hint')}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('agreement.fields.agreementText')} *
+                {t('Agreement Text')}       
               </label>
               <textarea
                 name="terms"
@@ -244,9 +249,9 @@ const AgreementEdit = () => {
             <div className="flex flex-wrap gap-3 pt-4">
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
               >
-                {t('agreement.buttons.save')}
+                {t('Save')}
               </button>
               
               <button
@@ -254,7 +259,7 @@ const AgreementEdit = () => {
                 onClick={() => navigate(`/agreement-report/${agreementId}`)}
                 className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
               >
-                {t('agreement.buttons.cancel')}
+                {t('Cancel')}
               </button>
             </div>
           </form>

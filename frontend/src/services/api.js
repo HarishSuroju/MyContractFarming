@@ -100,6 +100,7 @@ export const profileAPI = {
 export const agreementAPI = {
   createAgreement: (agreementData) => api.post('/agreements', agreementData),
   sendAgreement: (agreementId) => api.put(`/agreements/${agreementId}/send`),
+  sendAgreementToFarmer: (agreementId) => api.put(`/agreements/${agreementId}/send-to-farmer`),
   getUserAgreements: () => api.get('/agreements'),
   getAgreementById: (agreementId) => api.get(`/agreements/${agreementId}`),
   updateAgreement: (agreementId, agreementData) => api.put(`/agreements/${agreementId}`, agreementData),
