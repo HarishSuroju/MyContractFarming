@@ -143,11 +143,28 @@ const getProfile = async (req, res) => {
 
 const updateProfileImage = async (req, res) => {
   try {
-    // This would typically handle profile image uploads
-    // For now, we'll return a placeholder response
-    res.status(501).json({
-      status: 'error',
-      message: 'Profile image upload not implemented'
+    const { profileImage } = req.body;
+    
+    // Find the user
+    const user = await User.findById(req.user.userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+    
+    // Update the profile photo - it can be a string (image data) or null
+    // If no profileImage is provided, set it to null (default behavior due to schema)
+    user.profilePhoto = profileImage || null;
+    
+    await user.save();
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Profile photo updated successfully',
+      data: { profilePhoto: user.profilePhoto }
     });
   } catch (error) {
     console.error('Update profile image error:', error);

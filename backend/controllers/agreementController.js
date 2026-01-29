@@ -1,6 +1,12 @@
 const { Agreement } = require('../models/Agreement');
 const { User } = require('../models/User');
+const {
+  logFraudAlert,
+  detectAgreementRejectionSpike,
+  detectAbnormalRatingBehaviour
+} = require('../utils/fraudDetection');
 
+// Create a new agreement between farmer and contractor
 const createAgreement = async (req, res) => {
   try {
     const { farmer, contractor, cropType, landArea, duration, salary, inputsSupplied, season, terms } = req.body;
@@ -61,6 +67,7 @@ const createAgreement = async (req, res) => {
   }
 };
 
+// Get agreements where the current user participates
 const getUserAgreements = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -86,6 +93,7 @@ const getUserAgreements = async (req, res) => {
   }
 };
 
+// Get a single agreement by ID (only if user is a party to it)
 const getAgreementById = async (req, res) => {
   try {
     const { agreementId } = req.params;
@@ -120,6 +128,7 @@ const getAgreementById = async (req, res) => {
   }
 };
 
+// Update agreement lifecycle status (draft, pending, active, completed, etc.)
 const updateAgreementStatus = async (req, res) => {
   try {
     const { agreementId } = req.params;
@@ -156,6 +165,11 @@ const updateAgreementStatus = async (req, res) => {
     agreement.updatedAt = Date.now();
     await agreement.save();
 
+    // Fraud pattern: multiple agreement rejections by same user
+    if (status === 'rejected') {
+      await detectAgreementRejectionSpike(userId);
+    }
+
     res.status(200).json({
       status: 'success',
       message: 'Agreement status updated successfully',
@@ -170,6 +184,7 @@ const updateAgreementStatus = async (req, res) => {
   }
 };
 
+// Mark that one of the parties has signed the agreement
 const signAgreement = async (req, res) => {
   try {
     const { agreementId } = req.params;
@@ -219,6 +234,7 @@ const signAgreement = async (req, res) => {
   }
 };
 
+// Update agreement fields (contractor-only, while in draft)
 const updateAgreement = async (req, res) => {
   try {
     const { agreementId } = req.params;
@@ -290,6 +306,7 @@ const updateAgreement = async (req, res) => {
   }
 };
 
+// Generate and store a one-time password for agreement acceptance
 const sendOtp = async (req, res) => {
   try {
     const { agreementId } = req.params;
@@ -307,7 +324,7 @@ const sendOtp = async (req, res) => {
     if (userId.toString() !== agreement.farmer.toString()) {
       return res.status(403).json({
         status: 'error',
-        message: 'You are not authorized to accept this agreement'
+        message: 'You are not authorized to request OTP for this agreement'
       });
     }
 
@@ -360,6 +377,7 @@ const sendOtp = async (req, res) => {
   }
 };
 
+// Verify OTP and move agreement to "active" status
 const acceptAgreement = async (req, res) => {
   try {
     const { agreementId } = req.params;
@@ -400,9 +418,11 @@ const acceptAgreement = async (req, res) => {
       });
     }
 
-    // Update agreement status to active
+    // Update agreement status to active and clear OTP so it cannot be reused
     agreement.status = 'active';
     agreement.acceptedAt = Date.now();
+    agreement.otp = undefined;
+    agreement.otpGeneratedAt = undefined;
     await agreement.save();
 
     // Get farmer user details
@@ -443,6 +463,167 @@ const acceptAgreement = async (req, res) => {
   }
 };
 
+// Initiate a mock payment for an agreement (contractor pays farmer)
+const initiateMockPayment = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const userId = req.user.userId;
+
+    const agreement = await Agreement.findById(agreementId);
+    if (!agreement) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Agreement not found'
+      });
+    }
+
+    // Only the contractor on an active agreement can initiate payment
+    if (userId.toString() !== agreement.contractor.toString()) {
+      await logFraudAlert({
+        userId,
+        type: 'payment_abuse',
+        severity: 'medium',
+        title: 'Unauthorized payment attempt',
+        description: 'User attempted to initiate payment on an agreement they do not own as contractor.',
+        context: { agreementId }
+      });
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only the contractor can initiate payment for this agreement'
+      });
+    }
+
+    if (agreement.status !== 'active' && agreement.status !== 'completed') {
+      await logFraudAlert({
+        userId,
+        type: 'payment_abuse',
+        severity: 'low',
+        title: 'Payment attempted in invalid agreement state',
+        description: `Payment attempted while agreement status is "${agreement.status}".`,
+        context: { agreementId, status: agreement.status }
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Payment can only be initiated for active or completed agreements'
+      });
+    }
+
+    // Simulate a payment being processed and completed
+    agreement.paymentStatus = 'paid';
+    agreement.lastPaymentAt = Date.now();
+    await agreement.save();
+
+    const mockPayment = {
+      id: `MOCK-${Date.now()}`,
+      amount: agreement.salary,
+      status: 'completed',
+      method: 'mock_gateway',
+      processedAt: new Date().toISOString()
+    };
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Mock payment processed successfully',
+      data: {
+        agreement,
+        payment: mockPayment
+      }
+    });
+  } catch (error) {
+    console.error('Initiate mock payment error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Server error while processing mock payment'
+    });
+  }
+};
+
+// Submit rating & review after contract completion
+const submitRating = async (req, res) => {
+  try {
+    const { agreementId } = req.params;
+    const { rating, review } = req.body;
+    const userId = req.user.userId;
+
+    if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Rating must be a number between 1 and 5'
+      });
+    }
+
+    const agreement = await Agreement.findById(agreementId);
+    if (!agreement) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Agreement not found'
+      });
+    }
+
+    // Ratings are only allowed after the contract is completed
+    if (agreement.status !== 'completed') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Ratings can only be submitted after the contract is completed'
+      });
+    }
+
+    const userIdStr = userId.toString();
+    const farmerIdStr = agreement.farmer.toString();
+    const contractorIdStr = agreement.contractor.toString();
+
+    if (userIdStr !== farmerIdStr && userIdStr !== contractorIdStr) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not authorized to rate this agreement'
+      });
+    }
+
+    // Contractor rates the farmer
+    if (userIdStr === contractorIdStr) {
+      if (agreement.farmerRating) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'You have already rated this farmer'
+        });
+      }
+      agreement.farmerRating = rating;
+      agreement.farmerReview = review;
+    }
+
+    // Farmer rates the contractor
+    if (userIdStr === farmerIdStr) {
+      if (agreement.contractorRating) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'You have already rated this contractor'
+        });
+      }
+      agreement.contractorRating = rating;
+      agreement.contractorReview = review;
+    }
+
+    agreement.updatedAt = Date.now();
+    await agreement.save();
+
+    // Fraud pattern: abnormal rating behaviour
+    const role = userIdStr === contractorIdStr ? 'contractor' : 'farmer';
+    await detectAbnormalRatingBehaviour({ userId, role, rating });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Rating submitted successfully',
+      data: { agreement }
+    });
+  } catch (error) {
+    console.error('Submit rating error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Server error while submitting rating'
+    });
+  }
+};
+
 module.exports = {
   createAgreement,
   getUserAgreements,
@@ -451,5 +632,7 @@ module.exports = {
   signAgreement,
   updateAgreement,
   sendOtp,
-  acceptAgreement
+  acceptAgreement,
+  initiateMockPayment,
+  submitRating
 };

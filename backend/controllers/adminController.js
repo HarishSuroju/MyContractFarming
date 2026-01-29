@@ -11,6 +11,12 @@ try {
 } catch (error) {
   console.warn('Proposal model not available:', error.message);
 }
+let FraudAlert;
+try {
+  FraudAlert = require('../models/FraudAlert').FraudAlert;
+} catch (error) {
+  console.warn('FraudAlert model not available:', error.message);
+}
 
 // Get all users
 const getAllUsers = async (req, res) => {
@@ -260,33 +266,17 @@ const getPayments = async (req, res) => {
 // Get fraud alerts
 const getFraudAlerts = async (req, res) => {
   try {
-    // Mock fraud alert data
-    const fraudAlerts = [
-      {
-        id: 1,
-        title: 'Unusual Login Activity',
-        description: 'Multiple failed login attempts from unusual location',
-        severity: 'high',
-        timestamp: '2024-01-18 14:30',
-        userId: 'user123'
-      },
-      {
-        id: 2,
-        title: 'Suspicious Payment Pattern',
-        description: 'Large payment transaction flagged for review',
-        severity: 'medium',
-        timestamp: '2024-01-18 12:15',
-        userId: 'user456'
-      },
-      {
-        id: 3,
-        title: 'Profile Verification Needed',
-        description: 'User profile information requires verification',
-        severity: 'low',
-        timestamp: '2024-01-18 10:45',
-        userId: 'user789'
-      }
-    ];
+    if (!FraudAlert) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'FraudAlert model not available'
+      });
+    }
+
+    const fraudAlerts = await FraudAlert.find()
+      .populate('userId', 'name email role')
+      .sort({ createdAt: -1 })
+      .limit(100);
 
     res.status(200).json({
       status: 'success',
