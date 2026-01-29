@@ -2,6 +2,7 @@ const express = require('express');
 const {
   createAgreement,
   sendAgreement,
+  sendAgreementToFarmer,
   getUserAgreements,
   getAgreementById,
   updateAgreement,
@@ -30,6 +31,14 @@ router.put(
   authenticateToken,
   authorizeRoles('farmer'),
   sendAgreement
+);
+
+// Send agreement to farmer
+router.put(
+  '/:agreementId/send-to-farmer',
+  authenticateToken,
+  authorizeRoles('contractor'),
+  sendAgreementToFarmer
 );
 
 router.get(

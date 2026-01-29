@@ -191,7 +191,7 @@ const AgreementSummary = () => {
             
             <h1 className="text-3xl font-bold mb-3">{user.name}</h1>
             <span className="inline-block px-6 py-2 rounded-full font-bold text-lg bg-white bg-opacity-25 backdrop-blur-sm">
-              {user.role === 'farmer' ? t('profileDetail.farmer') : t('profileDetail.contractor')}
+              {user.role === 'farmer' ? t('Farmer') : t('Contractor')}
             </span>
           </div>
         </div>

@@ -164,7 +164,10 @@ const NotificationBell = () => {
         }
         break;
       case 'agreement':
-        window.location.href = `/agreement-manager/${notification.referenceId}`;
+        // For agreement notifications, we need to determine if user is receiver
+        // Redirect to agreement-report for all agreement notifications
+        // The agreement-report page will handle role-based actions
+        window.location.href = `/agreement-report/${notification.referenceId}`;
         break;
       case 'proposal':
         window.location.href = `/proposals`;

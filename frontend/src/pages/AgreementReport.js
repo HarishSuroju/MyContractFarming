@@ -91,7 +91,7 @@ const AgreementReport = () => {
       // Refresh the agreement data
       fetchAgreement();
     } catch (err) {
-      setError(t('agreement.errors.statusUpdateFailed'));
+      setError(t('Agreement:Status Update Failed'));
     }
   };
 
@@ -100,7 +100,7 @@ const AgreementReport = () => {
       await agreementAPI.sendOtp(agreementId);
       setShowOtpModal(true);
     } catch (err) {
-      setError(t('agreement.errors.otpSendFailed'));
+      setError(t('Agreement:Otp Sending Failed'));
     }
   };
 
@@ -113,17 +113,28 @@ const AgreementReport = () => {
       fetchAgreement();
       navigate('/agreements');
     } catch (err) {
-      setError(t('agreement.errors.invalidOtp'));
+      setError(t('Agreement:Invalid Otp'));
     }
   };
 
   const canEdit = () => {
-    return userRole === 'contractor' && 
-           agreement?.status === 'sent_to_contractor' && 
-           userId === agreement?.contractor._id;
+    // Contractor can edit when sent_to_contractor status
+    if (userRole === 'contractor' && 
+        agreement?.status === 'sent_to_contractor' && 
+        userId === agreement?.contractor._id) {
+      return true;
+    }
+    // Farmer can edit when pending status (agreement sent by contractor)
+    if (userRole === 'farmer' && 
+        agreement?.status === 'pending' && 
+        userId === agreement?.farmer._id) {
+      return true;
+    }
+    return false;
   };
 
   const canAcceptOrReject = () => {
+    // Contractor can accept/reject when sent_to_contractor status
     if (userRole === 'contractor' && agreement?.status === 'sent_to_contractor' && userId === agreement?.contractor._id) {
       return true;
     }
@@ -184,7 +195,7 @@ const AgreementReport = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500">{t('agreement.errors.notFound')}</p>
+          <p className="text-red-500">{t('Agreement Not Found')}</p>
           <button 
             onClick={() => navigate(-1)} 
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -205,10 +216,10 @@ const AgreementReport = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-2xl font-bold">{agreement.title}</h1>
-                <p className="text-green-100 mt-1">{t('agreement.report.viewing')}</p>
+                <p className="text-green-100 mt-1">{t('Agreement Report Viewing')}</p>
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(agreement.status)}`}>
-                {t(`agreement.status.${agreement.status}`)}
+                {t(`Agreement Status ${agreement.status}`)}
               </span>
             </div>
           </div>
@@ -224,13 +235,13 @@ const AgreementReport = () => {
             {/* Parties Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-2">{t('agreement.fields.farmer')}</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">{t('Farmer')}</h3>
                 <p className="text-gray-900">{agreement.farmer?.name || 'N/A'}</p>
                 <p className="text-gray-600 text-sm">{agreement.farmer?.email || 'N/A'}</p>
               </div>
               
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-2">{t('agreement.fields.contractor')}</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">{t('Contractor')}</h3>
                 <p className="text-gray-900">{agreement.contractor?.name || 'N/A'}</p>
                 <p className="text-gray-600 text-sm">{agreement.contractor?.email || 'N/A'}</p>
               </div>
@@ -241,14 +252,14 @@ const AgreementReport = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('agreement.fields.crop')}
+                    {t('Crop')}
                   </label>
                   <p className="bg-gray-50 p-3 rounded border">{agreement.cropType || 'N/A'}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('agreement.fields.season')}
+                    {t('Season')}
                   </label>
                   <p className="bg-gray-50 p-3 rounded border">{agreement.season || 'N/A'}</p>
                 </div>
@@ -257,14 +268,14 @@ const AgreementReport = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('agreement.fields.quantity')}
+                    {t('Quantity')}
                   </label>
                   <p className="bg-gray-50 p-3 rounded border">{agreement.quantity || agreement.landArea || 'N/A'}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('agreement.fields.priceTerms')}
+                    {t('Price Terms')}
                   </label>
                   <p className="bg-gray-50 p-3 rounded border">{agreement.priceTerms || agreement.salary || 'N/A'}</p>
                 </div>
@@ -272,17 +283,17 @@ const AgreementReport = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('agreement.fields.deliveryTimeline')}
+                  {t('Delivery Timeline')}
                 </label>
                 <p className="bg-gray-50 p-3 rounded border">{agreement.duration || 'N/A'}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('agreement.fields.agreementText')}
+                  {t('Agreement Text')}
                 </label>
                 <div className="bg-gray-50 p-3 rounded border min-h-[120px]">
-                  {agreement.agreementText || agreement.terms || t('agreement.noTerms')}
+                  {agreement.agreementText || agreement.terms || t('No Terms')}
                 </div>
               </div>
             </div>
@@ -290,7 +301,61 @@ const AgreementReport = () => {
             {/* Action Buttons - Conditional based on user role and status */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               {/* Contractor actions when agreement is sent to them */}
-              {canEdit() && (
+              {userRole === 'contractor' && canEdit() && (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-gray-900">{t('Contractor Actions')}</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to={`/agreement-edit/${agreementId}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      {t('Edit')}
+                    </Link>
+                    <button
+                      onClick={() => handleStatusChange('accepted_by_contractor')}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      {t('Accept')}
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange('rejected_by_contractor')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                      {t('agreement.buttons.reject')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Farmer actions when agreement is sent by contractor */}
+              {userRole === 'farmer' && (agreement?.status === 'pending' || agreement?.status === 'edited_by_contractor') && userId === agreement?.farmer._id && (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-gray-900">{t('agreement.actions.farmerActions')}</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to={`/agreement-edit/${agreementId}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      {t('agreement.buttons.edit')}
+                    </Link>
+                    <button
+                      onClick={() => handleStatusChange('accepted_by_farmer')}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      {t('agreement.buttons.accept')}
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange('rejected_by_farmer')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                      {t('agreement.buttons.reject')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Contractor actions when agreement is sent by farmer */}
+              {userRole === 'contractor' && agreement?.status === 'pending' && userId === agreement?.contractor._id && (
                 <div className="space-y-4">
                   <h3 className="font-medium text-gray-900">{t('agreement.actions.contractorActions')}</h3>
                   <div className="flex flex-wrap gap-3">
@@ -316,10 +381,10 @@ const AgreementReport = () => {
                 </div>
               )}
 
-              {/* Farmer actions when contractor has accepted */}
-              {canConfirmOrReject() && (
+              {/* Contractor actions when farmer has accepted */}
+              {userRole === 'contractor' && agreement?.status === 'accepted_by_farmer' && userId === agreement?.contractor._id && (
                 <div className="space-y-4">
-                  <h3 className="font-medium text-gray-900">{t('agreement.actions.farmerActions')}</h3>
+                  <h3 className="font-medium text-gray-900">{t('agreement.actions.contractorActions')}</h3>
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => handleStatusChange('agreement_confirmed')}
@@ -337,16 +402,37 @@ const AgreementReport = () => {
                 </div>
               )}
 
+              {/* Farmer actions when contractor has accepted */}
+              {canConfirmOrReject() && (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-gray-900">{t('Farmer Actions')}</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => handleStatusChange('agreement_confirmed')}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      {t('Confirm')}
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange('agreement_rejected')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                      {t('Reject')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Actions when agreement is confirmed and ready for activation */}
               {userRole === 'contractor' && agreement.status === 'agreement_confirmed' && userId === agreement.contractor._id && (
                 <div className="space-y-4">
-                  <h3 className="font-medium text-gray-900">{t('agreement.actions.activation')}</h3>
+                  <h3 className="font-medium text-gray-900">{t('Activation')}</h3>
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleSendOtp}
                       className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                     >
-                      {t('agreement.buttons.activate')}
+                      {t('Activate')}
                     </button>
                   </div>
                 </div>
@@ -358,7 +444,7 @@ const AgreementReport = () => {
                   onClick={() => navigate(-1)}
                   className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                 >
-                  {t('agreement.buttons.back')}
+                  {t('Back')}
                 </button>
               </div>
             </div>
@@ -370,12 +456,12 @@ const AgreementReport = () => {
       {showOtpModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('agreement.otp.modalTitle')}</h3>
-            <p className="text-gray-600 mb-4">{t('agreement.otp.instructions')}</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('OTP Modal Title')}</h3>
+            <p className="text-gray-600 mb-4">{t('OTP Instructions')}</p>
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('agreement.otp.inputLabel')}
+                {t('OTP Input Label')}
               </label>
               <input
                 type="text"
@@ -392,7 +478,7 @@ const AgreementReport = () => {
                 disabled={!otpInput || otpInput.length !== 6}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
               >
-                {t('agreement.otp.confirmButton')}
+                {t('Confirm')}
               </button>
               <button
                 onClick={() => {
@@ -401,7 +487,7 @@ const AgreementReport = () => {
                 }}
                 className="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
               >
-                {t('agreement.otp.cancelButton')}
+                {t('Cancel')}
               </button>
             </div>
           </div>

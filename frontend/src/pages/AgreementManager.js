@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { agreementAPI } from '../services/api';
 
@@ -105,8 +105,10 @@ const AgreementManager = () => {
   const handleSendAgreement = async () => {
     setLoading(true);
     try {
-      await agreementAPI.updateAgreementStatus(agreementId, 'sent');
-      setAgreement(prev => ({ ...prev, status: 'sent' }));
+      // Use the new API function to send agreement to farmer
+      await agreementAPI.sendAgreementToFarmer(agreementId);
+      // Update status to 'pending' (farmer's turn to act)
+      setAgreement(prev => ({ ...prev, status: 'pending' }));
       setSuccess(t('agreement.success.sent'));
     } catch (err) {
       setError(t('agreement.errors.sendFailed'));
@@ -164,6 +166,19 @@ const AgreementManager = () => {
     }
   };
 
+  const handleStatusChange = async (newStatus) => {
+    setLoading(true);
+    try {
+      const response = await agreementAPI.updateAgreementStatus(agreementId, newStatus);
+      setAgreement(response.data.data.agreement);
+      setSuccess(`${t('agreement.success.updated')} - ${newStatus}`);
+    } catch (err) {
+      setError(t('agreement.errors.updateFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAdminApprove = async (approved) => {
     setLoading(true);
     try {
@@ -185,10 +200,16 @@ const AgreementManager = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-blue-100 text-blue-800';
+      case 'sent_to_contractor': return 'bg-indigo-100 text-indigo-800';
+      case 'edited_by_contractor': return 'bg-orange-100 text-orange-800';
+      case 'accepted_by_contractor': return 'bg-purple-100 text-purple-800';
+      case 'rejected_by_contractor': return 'bg-red-100 text-red-800';
+      case 'agreement_confirmed': return 'bg-green-100 text-green-800';
+      case 'agreement_rejected': return 'bg-red-100 text-red-800';
       case 'active': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-purple-100 text-purple-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'completed': return 'bg-teal-100 text-teal-800';
+      case 'terminated': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -414,25 +435,54 @@ const AgreementManager = () => {
                 </button>
               )}
 
-              {userRole === 'farmer' && agreement.status === 'sent' && (
-                <>
+              {/* Farmer actions when agreement is sent by contractor */}
+              {userRole === 'farmer' && agreement.status === 'pending' && (
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    to={`/agreement-edit/${agreementId}`}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    {t('agreement.buttons.edit')}
+                  </Link>
                   <button
                     type="button"
-                    onClick={handleGenerateOTP}
+                    onClick={() => handleStatusChange('accepted_by_farmer')}
                     disabled={loading}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
                   >
-                    {t('agreement.buttons.acceptAgreement')}
+                    {t('agreement.buttons.accept')}
                   </button>
                   <button
                     type="button"
-                    onClick={handleRequestChanges}
+                    onClick={() => handleStatusChange('rejected_by_farmer')}
                     disabled={loading}
-                    className="px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50"
+                    className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                   >
-                    {t('agreement.buttons.requestChanges')}
+                    {t('agreement.buttons.reject')}
                   </button>
-                </>
+                </div>
+              )}
+
+              {/* Contractor actions when farmer has accepted */}
+              {userRole === 'contractor' && agreement.status === 'accepted_by_farmer' && (
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange('agreement_confirmed')}
+                    disabled={loading}
+                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {t('Confirm')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange('agreement_rejected')}
+                    disabled={loading}
+                    className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {t('agreement.buttons.reject')}
+                  </button>
+                </div>
               )}
 
               {(userRole === 'contractor' || userRole === 'farmer') && agreement.status === 'active' && (
