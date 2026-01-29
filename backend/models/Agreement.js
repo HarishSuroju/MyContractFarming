@@ -89,6 +89,34 @@ const agreementSchema = new mongoose.Schema({
   acceptedAt: {
     type: Date
   },
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'processing', 'paid', 'failed'],
+    default: 'unpaid'
+  },
+  lastPaymentAt: {
+    type: Date
+  },
+  farmerRating: {
+    // Rating received by the farmer (given by contractor)
+    type: Number,
+    min: 1,
+    max: 5
+  },
+  farmerReview: {
+    type: String,
+    maxlength: 1000
+  },
+  contractorRating: {
+    // Rating received by the contractor (given by farmer)
+    type: Number,
+    min: 1,
+    max: 5
+  },
+  contractorReview: {
+    type: String,
+    maxlength: 1000
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -246,10 +246,10 @@ const getUserById = async (req, res) => {
     let profileType = null;
     
     if (user.role === 'farmer') {
-      profile = await FarmerProfile.findOne({ user: userId }).populate('user', 'name email phone');
+      profile = await FarmerProfile.findOne({ user: objectId }).populate('user', 'name email phone');
       profileType = 'farmer';
     } else if (user.role === 'contractor') {
-      profile = await ContractorProfile.findOne({ user: userId }).populate('user', 'name email phone');
+      profile = await ContractorProfile.findOne({ user: objectId }).populate('user', 'name email phone');
       profileType = 'contractor';
     }
     
