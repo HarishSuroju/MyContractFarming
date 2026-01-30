@@ -47,7 +47,8 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 app.use(morgan('combined')); // Logging
-app.use(express.json()); // Parse JSON bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON bodies with increased limit for image uploads
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // Parse URL encoded bodies
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

@@ -2,6 +2,7 @@ const express = require('express');
 const { 
   createNotification,
   getUserNotifications,
+  getNotificationsDebug,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   getUnreadCount
@@ -15,6 +16,7 @@ router.use(authenticateToken);
 
 // Notification routes
 router.post('/create', createNotification);
+router.get('/debug', getNotificationsDebug);
 router.get('/', getUserNotifications);
 router.put('/:id/read', markNotificationAsRead);
 router.put('/read-all', markAllNotificationsAsRead);

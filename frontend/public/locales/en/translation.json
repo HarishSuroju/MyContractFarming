@@ -163,6 +163,17 @@
     "backButton": "Back",
     "createAccountButton": "Create Account"
   },
+  "notifications": {
+    "title": "Notifications",
+    "bellIcon": "Notifications",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications",
+    "noNotifications": "No notifications yet",
+    "time": {
+      "justNow": "Just now",
+      "hoursAgo": "h ago"
+    }
+  },
   "login": {
     "welcomeBack": "Welcome back, {{name}}!",
     "loggedInAs": "You are logged in as {{role}}.",

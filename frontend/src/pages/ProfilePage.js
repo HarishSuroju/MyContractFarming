@@ -115,7 +115,8 @@ const ProfilePage = () => {
       //alert('Profile image updated successfully!');
     } catch (error) {
       console.error('Error updating profile image:', error);
-      //alert('Failed to update profile image. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Failed to update profile image. Please try again.';
+      alert(errorMessage);
     } finally {
       setUploading(false); // Hide uploading indicator
     }

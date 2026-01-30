@@ -15,7 +15,9 @@ const NotificationBell = () => {
   useEffect(() => {
     // Initialize Socket.IO connection
     const token = localStorage.getItem('token');
-    if (token) {
+    const userId = localStorage.getItem('userId');
+    
+    if (token && userId) {
       socketRef.current = io('http://localhost:5000', {
         transports: ['websocket'],
         auth: {
@@ -24,33 +26,40 @@ const NotificationBell = () => {
       });
 
       socketRef.current.on('connect', () => {
-        console.log('Connected to notification server');
+        console.log('[NotificationBell] Connected to notification server');
         // Join user room
-        const userId = localStorage.getItem('userId');
         if (userId) {
+          console.log('[NotificationBell] Joining room:', userId);
           socketRef.current.emit('join', userId);
         }
       });
 
       // Listen for new notifications
       socketRef.current.on('notification:new', (notification) => {
+        console.log('[NotificationBell] Real-time notification received:', notification);
         setNotifications(prev => [notification, ...prev]);
         setUnreadCount(prev => prev + 1);
       });
 
       socketRef.current.on('disconnect', () => {
-        console.log('Disconnected from notification server');
+        console.log('[NotificationBell] Disconnected from notification server');
       });
+      
+      // Fetch initial notifications only if token is available
+      fetchNotifications();
+      fetchUnreadCount();
     }
-
-    // Fetch initial notifications
-    fetchNotifications();
-    fetchUnreadCount();
 
     // Cleanup function
     return () => {
       if (socketRef.current) {
-        socketRef.current.disconnect();
+        // Only disconnect if socket is connected or connecting
+        if (socketRef.current.connected || socketRef.current.connecting) {
+          socketRef.current.disconnect();
+        } else {
+          // Force close if still trying to connect
+          socketRef.current.close();
+        }
       }
     };
   }, []);
@@ -72,10 +81,20 @@ const NotificationBell = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
+      console.log('[NotificationBell] Fetching notifications...');
       const response = await notificationAPI.getUserNotifications({ limit: 5 });
+      console.log('[NotificationBell] API response:', response.data);
+      console.log('[NotificationBell] Notifications received:', response.data.data.notifications.length);
+      if (response.data.data.notifications.length > 0) {
+        console.log('[NotificationBell] Notification types:', response.data.data.notifications.map(n => n.type));
+      }
       setNotifications(response.data.data.notifications);
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      // Only log non-403 errors
+      if (error.response?.status !== 403) {
+        console.error('[NotificationBell] Failed to fetch notifications:', error);
+      }
+      // Silently fail for 403 - user profile may not be complete yet
     } finally {
       setLoading(false);
     }
@@ -84,9 +103,14 @@ const NotificationBell = () => {
   const fetchUnreadCount = async () => {
     try {
       const response = await notificationAPI.getUnreadCount();
+      console.log('[NotificationBell] Unread count:', response.data.data.unreadCount);
       setUnreadCount(response.data.data.unreadCount);
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+      // Only log non-403 errors
+      if (error.response?.status !== 403) {
+        console.error('[NotificationBell] Failed to fetch unread count:', error);
+      }
+      // Silently fail for 403 - user profile may not be complete yet
     }
   };
 
