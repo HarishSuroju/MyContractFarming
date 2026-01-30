@@ -50,8 +50,9 @@ const SignUpPage = () => {
         role: userType
       });
       
-      // Store token and user data
+      // Store token, userId, and user role
       localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('userId', response.data.data.user.id);
       localStorage.setItem('userRole', userType);
       
       setModalMessage(t('signUp.successMessage'));

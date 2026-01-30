@@ -43,7 +43,14 @@ const AgreementReport = () => {
 
   const handleStatusChange = async (newStatus) => {
     try {
+      console.log('[AgreementReport] Status change requested');
+      console.log('[AgreementReport] New status:', newStatus);
+      console.log('[AgreementReport] Current agreement status:', agreement?.status);
+      console.log('[AgreementReport] User role:', userRole);
+      console.log('[AgreementReport] User ID:', userId);
+      
       const response = await agreementAPI.updateAgreementStatus(agreementId, newStatus);
+      console.log('[AgreementReport] Status update successful:', response.data);
       setAgreement(response.data.data.agreement);
       
       // Create notification for the other party
@@ -57,6 +64,14 @@ const AgreementReport = () => {
         case 'edited_by_contractor':
           notificationMessage = `${currentUserName} has edited the agreement for ${agreement.cropType}.`;
           notificationType = 'agreement_edited';
+          break;
+        case 'accepted_by_farmer':
+          notificationMessage = `${currentUserName} has accepted the agreement for ${agreement.cropType}.`;
+          notificationType = 'agreement_accepted';
+          break;
+        case 'rejected_by_farmer':
+          notificationMessage = `${currentUserName} has rejected the agreement for ${agreement.cropType}.`;
+          notificationType = 'agreement_rejected';
           break;
         case 'accepted_by_contractor':
           notificationMessage = `${currentUserName} has accepted the agreement for ${agreement.cropType}.`;
@@ -87,6 +102,8 @@ const AgreementReport = () => {
         referenceId: agreementId,
         referenceType: 'agreement'
       });
+      
+      console.log('[AgreementReport] Notification created');
       
       // Refresh the agreement data
       fetchAgreement();

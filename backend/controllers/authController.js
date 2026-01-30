@@ -42,10 +42,20 @@ const register = async (req, res) => {
     user.isVerified = true;
     await user.save();
 
+    // Generate JWT token for immediate authentication
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret_key',
+      { expiresIn: '7d' }
+    );
+
     res.status(201).json({
       status: 'success',
       message: 'User registered successfully',
-      data: { user: { id: user._id, name: user.name, email: user.email, role: user.role } }
+      data: { 
+        token,
+        user: { id: user._id, name: user.name, email: user.email, role: user.role } 
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -145,6 +155,22 @@ const updateProfileImage = async (req, res) => {
   try {
     const { profileImage } = req.body;
     
+    // Validate that profileImage exists and is a string
+    if (profileImage && typeof profileImage !== 'string') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Profile image must be a string'
+      });
+    }
+    
+    // Validate that the image doesn't exceed reasonable size (5MB for base64)
+    if (profileImage && profileImage.length > 5242880) { // 5MB in bytes
+      return res.status(400).json({
+        status: 'error',
+        message: 'Profile image is too large. Maximum size is 5MB.'
+      });
+    }
+    
     // Find the user
     const user = await User.findById(req.user.userId);
     
@@ -170,7 +196,8 @@ const updateProfileImage = async (req, res) => {
     console.error('Update profile image error:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Server error while updating profile image'
+      message: 'Server error while updating profile image',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

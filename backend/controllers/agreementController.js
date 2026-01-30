@@ -86,6 +86,14 @@ const createAgreement = async (req, res) => {
     const otherUserId = userId === farmer ? contractor : farmer;
     const senderName = farmerUser._id.toString() === userId ? farmerUser.name : contractorUser.name;
     
+    console.log('\n=== CREATING AGREEMENT NOTIFICATION ===');
+    console.log('Agreement ID:', agreement._id);
+    console.log('Agreement status:', agreement.status);
+    console.log('CreatorId (senderId):', userId);
+    console.log('OtherUserId (recipient):', otherUserId);
+    console.log('SenderName:', senderName);
+    console.log('CropType:', cropType);
+    
     const notification = new Notification({
       userId: otherUserId,
       senderId: userId,
@@ -96,12 +104,25 @@ const createAgreement = async (req, res) => {
       referenceType: 'agreement'
     });
 
+    console.log('Saving notification with payload:', {
+      userId: notification.userId,
+      senderId: notification.senderId,
+      type: notification.type,
+      referenceType: notification.referenceType,
+      referenceId: notification.referenceId
+    });
+    
     await notification.save();
+    console.log('✓ Notification saved with ID:', notification._id);
 
     // Emit real-time notification if user is online
     if (req.app && req.app.get('io')) {
       const io = req.app.get('io');
+      console.log('Emitting notification:new event to room:', otherUserId.toString());
       io.to(otherUserId.toString()).emit('notification:new', notification);
+      console.log('✓ Real-time emission complete');
+    } else {
+      console.log('⚠ Socket.io not available');
     }
 
     res.status(201).json({
@@ -334,28 +355,61 @@ const updateAgreement = async (req, res) => {
     const userId = req.user.userId;
     const updateData = req.body;
 
+    console.log('\n=== UPDATE AGREEMENT DEBUG ===');
+    console.log('AgreementId:', agreementId);
+    console.log('UserId:', userId);
+    console.log('Update data keys:', Object.keys(updateData));
+
     const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
 
     if (!agreement) {
+      console.log('⚠ Agreement not found');
       return res.status(404).json({
         status: 'error',
         message: 'Agreement not found'
       });
     }
 
+    console.log('Agreement found:', agreement._id);
+    console.log('Farmer ID:', agreement.farmer._id.toString());
+    console.log('Contractor ID:', agreement.contractor._id.toString());
+    console.log('Current status:', agreement.status);
+
     // Check if user is authorized to edit this agreement
     const isContractor = agreement.contractor._id.toString() === userId;
     const isFarmer = agreement.farmer._id.toString() === userId;
     
-    // Contractors can edit when status is pending (agreement sent by farmer)
-    // Farmers can edit when status is pending (agreement sent by contractor)
-    const canEdit = (isContractor && agreement.status === 'pending') || 
-                    (isFarmer && agreement.status === 'pending');
+    console.log('Is contractor?', isContractor);
+    console.log('Is farmer?', isFarmer);
+    
+    // Allow editing based on agreement status:
+    // - When status is 'sent_to_contractor': contractor can edit (farmer sent it to them)
+    // - When status is 'pending': farmer can edit (contractor sent it to them)
+    // - When status is 'edited_by_contractor': farmer can edit and send back
+    // - When status is 'edited_by_farmer': contractor can edit and send back
+    const canEdit = (isContractor && (agreement.status === 'sent_to_contractor' || agreement.status === 'edited_by_farmer')) || 
+                    (isFarmer && (agreement.status === 'pending' || agreement.status === 'edited_by_contractor'));
+    
+    console.log('Can edit?', canEdit);
+    console.log('Status check - allowed statuses for contractor:', ['sent_to_contractor', 'edited_by_farmer']);
+    console.log('Status check - allowed statuses for farmer:', ['pending', 'edited_by_contractor']);
+    console.log('Current status:', agreement.status);
     
     if (!canEdit) {
+      console.log('❌ Authorization failed. Reasons:');
+      console.log('  - Is user in agreement?', isContractor || isFarmer);
+      console.log('  - Is status editable?', (isContractor && (agreement.status === 'sent_to_contractor' || agreement.status === 'edited_by_farmer')) || (isFarmer && (agreement.status === 'pending' || agreement.status === 'edited_by_contractor')));
+      console.log('  - Current status:', agreement.status);
       return res.status(403).json({
         status: 'error',
-        message: 'You are not authorized to edit this agreement'
+        message: 'You are not authorized to edit this agreement',
+        debug: {
+          isContractor,
+          isFarmer,
+          currentStatus: agreement.status,
+          allowedStatusesForContractor: ['sent_to_contractor', 'edited_by_farmer'],
+          allowedStatusesForFarmer: ['pending', 'edited_by_contractor']
+        }
       });
     }
 
@@ -366,7 +420,9 @@ const updateAgreement = async (req, res) => {
       }
     });
 
+    console.log('✓ Updating agreement...');
     await agreement.save();
+    console.log('✓ Agreement saved');
 
     // Create notification for the other party
     let notificationUserId, notificationMessage;
@@ -381,6 +437,8 @@ const updateAgreement = async (req, res) => {
       notificationMessage = `${agreement.farmer.name} has edited the agreement for ${agreement.cropType}.`;
     }
     
+    console.log('Creating notification for:', notificationUserId);
+    
     const notification = new Notification({
       userId: notificationUserId,
       senderId: userId,
@@ -392,10 +450,12 @@ const updateAgreement = async (req, res) => {
     });
 
     await notification.save();
+    console.log('✓ Notification created');
 
     // Emit real-time notification
     if (req.app && req.app.get('io')) {
       const io = req.app.get('io');
+      console.log('Emitting notification to:', notificationUserId);
       io.to(notificationUserId).emit('notification:new', notification);
     }
 
@@ -420,14 +480,27 @@ const updateAgreementStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.userId;
 
+    console.log('\n=== UPDATE AGREEMENT STATUS DEBUG ===');
+    console.log('AgreementId:', agreementId);
+    console.log('Requested status:', status);
+    console.log('UserId:', userId);
+
     const agreement = await Agreement.findById(agreementId).populate('farmer contractor');
 
     if (!agreement) {
+      console.log('⚠ Agreement not found');
       return res.status(404).json({
         status: 'error',
         message: 'Agreement not found'
       });
     }
+
+    console.log('Agreement found:', agreement._id);
+    console.log('Current agreement status:', agreement.status);
+    console.log('Farmer ID:', agreement.farmer._id.toString());
+    console.log('Contractor ID:', agreement.contractor._id.toString());
+    console.log('Is farmer?', agreement.farmer._id.toString() === userId);
+    console.log('Is contractor?', agreement.contractor._id.toString() === userId);
 
     let validStatusTransition = false;
     let recipientUserId = null;
@@ -437,6 +510,7 @@ const updateAgreementStatus = async (req, res) => {
     // Define valid status transitions and recipients
     if (agreement.farmer._id.toString() === userId) {
       // Farmer actions
+      console.log('Farmer attempting status transition:', agreement.status, '→', status);
       if (status === 'agreement_confirmed' && agreement.status === 'accepted_by_contractor') {
         validStatusTransition = true;
         recipientUserId = agreement.contractor._id.toString();
@@ -465,6 +539,18 @@ const updateAgreementStatus = async (req, res) => {
         recipientUserId = agreement.contractor._id.toString();
         notificationType = 'agreement_edited';
         notificationMessage = `${agreement.farmer.name} has edited the agreement for ${agreement.cropType}.`;
+      } else if (status === 'accepted_by_farmer' && agreement.status === 'edited_by_contractor') {
+        // Farmer accepts agreement edited by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_accepted';
+        notificationMessage = `${agreement.farmer.name} has accepted the edited agreement for ${agreement.cropType}.`;
+      } else if (status === 'rejected_by_farmer' && agreement.status === 'edited_by_contractor') {
+        // Farmer rejects agreement edited by contractor
+        validStatusTransition = true;
+        recipientUserId = agreement.contractor._id.toString();
+        notificationType = 'agreement_rejected';
+        notificationMessage = `${agreement.farmer.name} has rejected the edited agreement for ${agreement.cropType}.`;
       }
     } else if (agreement.contractor._id.toString() === userId) {
       // Contractor actions
@@ -528,19 +614,36 @@ const updateAgreementStatus = async (req, res) => {
       }
     }
 
+    console.log('validStatusTransition?', validStatusTransition);
+    console.log('Expected transition status to be one of valid transitions');
+    
     if (!validStatusTransition) {
+      console.log('❌ INVALID STATUS TRANSITION');
+      console.log('Current status:', agreement.status);
+      console.log('Requested status:', status);
+      console.log('User is farmer?', agreement.farmer._id.toString() === userId);
+      console.log('User is contractor?', agreement.contractor._id.toString() === userId);
       return res.status(400).json({
         status: 'error',
-        message: 'Invalid status transition'
+        message: 'Invalid status transition',
+        debug: {
+          currentStatus: agreement.status,
+          requestedStatus: status,
+          isFarmer: agreement.farmer._id.toString() === userId,
+          isContractor: agreement.contractor._id.toString() === userId,
+          validTransitions: 'See server logs for expected transitions'
+        }
       });
     }
 
+    console.log('✓ Valid status transition, updating to:', status);
     // Update status
     agreement.status = status;
     if (status === 'agreement_confirmed' || status === 'accepted_by_contractor') {
       agreement.acceptedAt = new Date();
     }
     await agreement.save();
+    console.log('✓ Agreement status updated');
 
     // Create notification for the other party
     const notification = new Notification({

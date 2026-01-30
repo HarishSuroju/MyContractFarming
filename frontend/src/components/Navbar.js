@@ -20,7 +20,11 @@ const Navbar = () => {
           const response = await authAPI.getProfile();
           setUser(response.data.data.user);
         } catch (error) {
-          console.error('Failed to fetch user profile:', error);
+          // Only log errors that aren't 403/404 from profile not being complete
+          if (error.response?.status !== 403 && error.response?.status !== 404) {
+            console.error('Failed to fetch user profile:', error);
+          }
+          // Don't set user if profile fetch fails (profile may not be complete yet)
         }
       }
       // setLoading(false); // Commented out as it's not currently used

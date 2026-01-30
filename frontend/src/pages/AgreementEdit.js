@@ -68,7 +68,11 @@ const AgreementEdit = () => {
         inputsSupplied: formData.inputsSupplied.split(',').map(item => item.trim()).filter(item => item)
       };
       
+      console.log('[AgreementEdit] Updating agreement:', agreementId);
+      console.log('[AgreementEdit] Updated data:', updatedData);
+      
       const response = await agreementAPI.updateAgreement(agreementId, updatedData);
+      console.log('[AgreementEdit] Update successful:', response.data);
       
       // Determine who is editing and update status accordingly
       const userRole = localStorage.getItem('userRole');
@@ -76,6 +80,7 @@ const AgreementEdit = () => {
       if (userRole === 'farmer') {
         newStatus = 'edited_by_farmer';
       }
+      console.log('[AgreementEdit] Updating status to:', newStatus);
       await agreementAPI.updateAgreementStatus(agreementId, newStatus);
       
       setSuccess(t('agreement.success.updated'));
@@ -85,7 +90,18 @@ const AgreementEdit = () => {
         navigate(`/agreement-report/${agreementId}`);
       }, 1500);
     } catch (err) {
-      setError(t('Agreement Update Failed'));
+      console.error('[AgreementEdit] Error:', err);
+      console.error('[AgreementEdit] Error response:', err.response?.data);
+      const errorMessage = err.response?.data?.message || t('Agreement Update Failed');
+      const debugInfo = err.response?.data?.debug;
+      console.error('[AgreementEdit] Debug info:', debugInfo);
+      
+      let displayError = errorMessage;
+      if (debugInfo) {
+        displayError += `\n\nDebug: Status=${debugInfo.currentStatus} (expected: pending), IsUser=${debugInfo.isContractor || debugInfo.isFarmer}`;
+      }
+      
+      setError(displayError);
     }
   };
 
