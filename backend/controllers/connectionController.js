@@ -420,5 +420,51 @@ module.exports = {
   createProposal,
   getProposalById,
   updateProposalStatus,
-  getUserProposals
+  getUserProposals,
+  cancelConnectionRequest
+};
+
+// Cancel connection request (sender can cancel before receiver acts)
+const cancelConnectionRequest = async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const userId = req.user.userId;
+
+    const request = await ConnectionRequest.findOne({ _id: requestId });
+    if (!request) {
+      return res.status(404).json({ status: 'error', message: 'Connection request not found' });
+    }
+
+    // Only sender can cancel
+    if (request.senderId !== userId) {
+      return res.status(403).json({ status: 'error', message: 'Not authorized to cancel this request' });
+    }
+
+    // Remove the request
+    await ConnectionRequest.findByIdAndDelete(requestId);
+
+    // Notify receiver about cancellation
+    const { Notification } = require('../models/Notification');
+    const notification = new Notification({
+      userId: request.receiverId,
+      senderId: userId,
+      type: 'connection_request',
+      title: 'Connection Request Cancelled',
+      message: `${request.senderName} has cancelled the connection request`,
+      referenceId: request._id,
+      referenceType: 'connection_request'
+    });
+
+    await notification.save();
+
+    if (req.app && req.app.get('io')) {
+      const io = req.app.get('io');
+      io.to(request.receiverId.toString()).emit('notification:new', notification);
+    }
+
+    res.status(200).json({ status: 'success', message: 'Connection request cancelled' });
+  } catch (error) {
+    console.error('Cancel connection request error:', error);
+    res.status(500).json({ status: 'error', message: 'Server error while cancelling connection request' });
+  }
 };

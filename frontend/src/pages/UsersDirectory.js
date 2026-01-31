@@ -435,11 +435,13 @@ const UsersDirectory = () => {
                     
                     <button
                       onClick={() => viewMore(user.id)}
-                      className={`self-start px-6 py-2.5 rounded-lg font-semibold text-sm border-2 transition-all duration-200 hover:scale-105 ${
-                        roleClass === 'farmer'
-                          ? 'bg-green-500 border-green-500 text-white hover:bg-green-600 hover:border-green-600'
-                          : 'bg-blue-500 border-blue-500 text-white hover:bg-blue-600 hover:border-blue-600'
-                      }`}
+                      className="self-start px-6 py-2.5 rounded-lg font-semibold text-sm border-2 transition-all duration-200 hover:scale-105 text-white"
+                      style={{
+                        backgroundColor: roleClass === 'farmer' ? '#0db60c' : '#29003b',
+                        borderColor: roleClass === 'farmer' ? '#0db60c' : '#29003b'
+                      }}
+                      onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
+                      onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
                     >
                       {t('userDirectory.viewProfile')}
                     </button>

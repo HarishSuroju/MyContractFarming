@@ -20,7 +20,9 @@ const FarmerToContractorConnection = () => {
     cropType: '',
     season: '',
     landArea: '',
+    areaUnit: 'Acres',
     expectedPrice: '',
+    currency: 'INR',
     message: ''
   });
   
@@ -30,6 +32,10 @@ const FarmerToContractorConnection = () => {
   // Available options
   const availableCrops = ['Rice', 'Wheat', 'Maize', 'Cotton', 'Soybean', 'Coffee', 'Tea', 'Sugarcane', 'Barley', 'Millets'];
   const availableSeasons = ['Kharif', 'Rabi', 'Zaid'];
+  // Preferred crops for the current (logged-in) user
+  const [preferredCrops, setPreferredCrops] = useState([]);
+  const areaUnits = ['Acres', 'Hectares'];
+  const currencies = [{ code: 'INR', symbol: '₹', label: 'Rupees' }, { code: 'USD', symbol: '$', label: 'Dollars' }];
 
   // Fetch contractor profile
   useEffect(() => {
@@ -83,6 +89,33 @@ const FarmerToContractorConnection = () => {
     }
   };
 
+  // Fetch current logged-in user's profile to get their preferred crops
+  useEffect(() => {
+    const fetchMyProfile = async () => {
+      try {
+        const resp = await profileAPI.getProfile();
+        const profile = resp.data?.data?.profile || resp.data?.profile || resp.data?.user;
+        const prefs = [];
+        if (profile) {
+          if (Array.isArray(profile.cropsGrown) && profile.cropsGrown.length) prefs.push(...profile.cropsGrown);
+          else if (Array.isArray(profile.crops) && profile.crops.length) prefs.push(...profile.crops);
+          else if (profile.selectedCrop) prefs.push(profile.selectedCrop);
+        }
+
+        // fallback to any selection stored in localStorage (from CropSelection flow)
+        const saved = localStorage.getItem('selectedCrop');
+        if (saved && !prefs.includes(saved)) prefs.push(saved);
+
+        setPreferredCrops(prefs.filter(Boolean));
+      } catch (err) {
+        // ignore - we'll fall back to the full availableCrops list
+        console.warn('Could not fetch current profile for preferred crops', err?.message || err);
+      }
+    };
+
+    fetchMyProfile();
+  }, []);
+
   // Form validation
   const validateForm = () => {
     const errors = {};
@@ -100,11 +133,17 @@ const FarmerToContractorConnection = () => {
     } else if (isNaN(formData.landArea) || parseFloat(formData.landArea) <= 0) {
       errors.landArea = t('interest.submission.invalidNumber');
     }
+    if (!formData.areaUnit || !formData.areaUnit.trim()) {
+      errors.areaUnit = t('interest.submission.requiredField');
+    }
     
     if (!formData.expectedPrice.trim()) {
       errors.expectedPrice = t('interest.submission.requiredField');
     } else if (isNaN(formData.expectedPrice) || parseFloat(formData.expectedPrice) <= 0) {
       errors.expectedPrice = t('interest.submission.invalidPrice');
+    }
+    if (!formData.currency || !formData.currency.trim()) {
+      errors.currency = t('interest.submission.requiredField');
     }
     
     if (formData.message.trim().length > 500) {
@@ -150,7 +189,9 @@ const FarmerToContractorConnection = () => {
         cropType: formData.cropType,
         season: formData.season,
         landArea: parseFloat(formData.landArea),
+        areaUnit: formData.areaUnit,
         expectedPrice: parseFloat(formData.expectedPrice),
+        currency: formData.currency,
         message: formData.message.trim(),
         initiatedBy: 'farmer',
         submittedAt: new Date().toISOString()
@@ -166,7 +207,7 @@ const FarmerToContractorConnection = () => {
       
       // Redirect after success
       setTimeout(() => {
-        navigate(`/connection-status/${userId}`);
+        navigate(`/user-profile/${userId}`);
       }, 2000);
       
     } catch (err) {
@@ -230,6 +271,47 @@ const FarmerToContractorConnection = () => {
   const isContractor = user.role?.toLowerCase() === 'contractor';
   const roleClass = isContractor ? 'contractor' : 'farmer';
   const roleGradient = isContractor ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600';
+
+  // Determine crops to show in the dropdown:
+  // 1. Prefer crops from the target user's profile (`user`): contractor -> cropDemand, farmer -> crops/cropsGrown/selectedCrop
+  // 2. Fallback to current logged-in user's preferred crops (preferredCrops)
+  // 3. Fallback to global availableCrops
+  const cropsToShow = (() => {
+    const list = [];
+    if (user) {
+      // contractor target: prefer cropDemand
+      if (user.role?.toLowerCase() === 'contractor') {
+        if (Array.isArray(user.cropDemand) && user.cropDemand.length) {
+          list.push(...user.cropDemand);
+        } else if (user.profile?.cropDemand && Array.isArray(user.profile.cropDemand) && user.profile.cropDemand.length) {
+          list.push(...user.profile.cropDemand);
+        }
+      } else {
+        // farmer target: prefer crops/cropsGrown/selectedCrop
+        if (Array.isArray(user.crops) && user.crops.length) {
+          list.push(...user.crops);
+        } else if (Array.isArray(user.cropsGrown) && user.cropsGrown.length) {
+          list.push(...user.cropsGrown);
+        } else if (user.profile) {
+          if (Array.isArray(user.profile.cropsGrown) && user.profile.cropsGrown.length) list.push(...user.profile.cropsGrown);
+          else if (Array.isArray(user.profile.crops) && user.profile.crops.length) list.push(...user.profile.crops);
+          else if (user.profile.selectedCrop) list.push(user.profile.selectedCrop);
+        } else if (user.selectedCrop) {
+          list.push(user.selectedCrop);
+        }
+      }
+    }
+
+    // Remove duplicates and falsy
+    const uniqueTarget = Array.from(new Set(list.filter(Boolean)));
+    if (uniqueTarget.length) return uniqueTarget;
+
+    // Fallback to current user's preferred crops (if we fetched them earlier)
+    if (preferredCrops && preferredCrops.length) return Array.from(new Set(preferredCrops.filter(Boolean)));
+
+    // Final fallback to global list
+    return availableCrops;
+  })();
 
   const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -340,7 +422,7 @@ const FarmerToContractorConnection = () => {
                   }`}
                 >
                   <option value="">{t('Enter crop type')}</option>
-                  {availableCrops.map(crop => (
+                  {(preferredCrops && preferredCrops.length > 0 ? preferredCrops : availableCrops).map(crop => (
                     <option key={crop} value={crop}>{crop}</option>
                   ))}
                 </select>
@@ -378,21 +460,39 @@ const FarmerToContractorConnection = () => {
                 <label htmlFor="landArea" className="block text-sm font-bold text-gray-700 mb-2">
                   {t('Land Area')} *
                 </label>
-                <input
-                  type="number"
-                  id="landArea"
-                  name="landArea"
-                  value={formData.landArea}
-                  onChange={handleInputChange}
-                  placeholder={t('Enter Land Area')}
-                  min="0.1"
-                  step="0.1"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                    formErrors.landArea ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="landArea"
+                    name="landArea"
+                    value={formData.landArea}
+                    onChange={handleInputChange}
+                    placeholder={t('Enter Land Area')}
+                    min="0.1"
+                    step="0.1"
+                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                      formErrors.landArea ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  <select
+                    id="areaUnit"
+                    name="areaUnit"
+                    value={formData.areaUnit}
+                    onChange={handleInputChange}
+                    className={`w-36 px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                      formErrors.areaUnit ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    {areaUnits.map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                </div>
                 {formErrors.landArea && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.landArea}</p>
+                )}
+                {formErrors.areaUnit && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.areaUnit}</p>
                 )}
               </div>
 
@@ -401,21 +501,39 @@ const FarmerToContractorConnection = () => {
                 <label htmlFor="expectedPrice" className="block text-sm font-bold text-gray-700 mb-2">
                   {t('Expected Monthly Payment')} *
                 </label>
-                <input
-                  type="number"
-                  id="expectedPrice"
-                  name="expectedPrice"
-                  value={formData.expectedPrice}
-                  onChange={handleInputChange}
-                  placeholder={t('Enter Expected Monthly Payment')}
-                  min="1"
-                  step="1"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                    formErrors.expectedPrice ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="expectedPrice"
+                    name="expectedPrice"
+                    value={formData.expectedPrice}
+                    onChange={handleInputChange}
+                    placeholder={t('Enter Expected Monthly Payment')}
+                    min="1"
+                    step="1"
+                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                      formErrors.expectedPrice ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  <select
+                    id="currency"
+                    name="currency"
+                    value={formData.currency}
+                    onChange={handleInputChange}
+                    className={`w-36 px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                      formErrors.currency ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    {currencies.map(c => (
+                      <option key={c.code} value={c.code}>{c.label} ({c.symbol})</option>
+                    ))}
+                  </select>
+                </div>
                 {formErrors.expectedPrice && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.expectedPrice}</p>
+                )}
+                {formErrors.currency && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.currency}</p>
                 )}
               </div>
             </div>

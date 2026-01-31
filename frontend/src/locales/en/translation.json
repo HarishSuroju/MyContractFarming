@@ -594,10 +594,33 @@
     "confirmAccept": "Yes, Accept",
     "confirmReject": "Yes, Reject",
     "status": {
+      "title": "Connection Status",
       "pending": "Pending",
       "accepted": "Accepted",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "pendingInfo": {
+        "title": "Connection Pending",
+        "message": "Your connection request is being reviewed. The other party will respond soon."
+      },
+      "acceptedInfo": {
+        "title": "Connection Accepted",
+        "message": "Great! Your connection request has been accepted. You can now communicate and discuss contract details."
+      },
+      "rejectedInfo": {
+        "title": "Connection Rejected",
+        "message": "Unfortunately, your connection request was not accepted. You can try connecting with other users."
+      },
+      "checkBackLater": "Check back later for updates.",
+      "goToCommunication": "Go to Communication",
+      "backToProfile": "Back to Profile",
+      "refreshStatus": "Refresh Status"
     }
+    ,
+    "cancel": "Cancel",
+    "cancelling": "Cancelling...",
+    "cancelledSuccess": "Request cancelled",
+    "cancelError": "Failed to cancel request",
+    "pendingMessage": "Please wait for the receiver to accept your request"
   },
   "errors": {
     "failedToLoadUsers": "Failed to load users",

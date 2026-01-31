@@ -115,6 +115,7 @@ export const connectionAPI = {
   createConnectionRequest: (connectionData) => api.post('/connections/requests', connectionData),
   getConnectionRequests: () => api.get('/connections/requests'),
   updateConnectionRequestStatus: (requestId, status) => api.patch(`/connections/requests/${requestId}/status`, { status }),
+  cancelConnectionRequest: (requestId) => api.delete(`/connections/requests/${requestId}`),
   createProposal: (proposalData) => api.post('/connections/proposals', proposalData),
   getProposals: () => api.get('/connections/proposals'),
   updateProposalStatus: (proposalId, status) => api.patch(`/connections/proposals/${proposalId}/status`, { status }),

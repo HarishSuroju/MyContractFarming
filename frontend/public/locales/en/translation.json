@@ -200,6 +200,156 @@
     "forgotPassword": "Forgot password?",
     "backButton": "Back",
     "signingIn": "Signing in...",
-    "loginButton": "Login"
+    "loginButton": "Login",
+    "loginRequired": "Login Required",
+    "loginMessage": "Please log in to access this page."
+  },
+  "connection": {
+    "requestsPageTitle": "Connection Requests",
+    "incomingRequests": "Incoming Requests",
+    "outgoingRequests": "Outgoing Requests",
+    "noIncomingRequests": "No incoming requests",
+    "noOutgoingRequests": "No outgoing requests",
+    "accept": "Accept",
+    "reject": "Reject",
+    "pending": "Pending",
+    "status": {
+      "title": "Connection Status",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "pendingInfo": {
+        "title": "Connection Pending",
+        "message": "Your connection request is being reviewed. The other party will respond soon."
+      },
+      "acceptedInfo": {
+        "title": "Connection Accepted",
+        "message": "Great! Your connection request has been accepted. You can now communicate and discuss contract details."
+      },
+      "rejectedInfo": {
+        "title": "Connection Rejected",
+        "message": "Unfortunately, your connection request was not accepted. You can try connecting with other users."
+      },
+      "checkBackLater": "Check back later for updates.",
+      "goToCommunication": "Go to Communication",
+      "backToProfile": "Back to Profile",
+      "refreshStatus": "Refresh Status"
+    }
+  },
+  "agreement": {
+    "title": "Agreements",
+    "create": "Create Agreement",
+    "fields": {
+      "crop": "Crop Type",
+      "cropType": "Crop Type",
+      "season": "Season",
+      "salary": "Salary",
+      "terms": "Terms and Conditions",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "price": "Price",
+      "paymentTerms": "Payment Terms",
+      "priceTerms": "Price Terms",
+      "deliveryTimeline": "Delivery Timeline",
+      "agreementText": "Agreement Text",
+      "landArea": "Land Area",
+      "location": "Location",
+      "farmer": "Farmer",
+      "contractor": "Contractor"
+    },
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "confirmed": "Confirmed"
+    },
+    "actions": {
+      "edit": "Edit",
+      "accept": "Accept",
+      "reject": "Reject",
+      "delete": "Delete",
+      "confirm": "Confirm",
+      "send": "Send Agreement",
+      "farmerActions": "Farmer Actions",
+      "contractorActions": "Contractor Actions"
+    },
+    "messages": {
+      "created": "Agreement created successfully",
+      "updated": "Agreement updated successfully",
+      "deleted": "Agreement deleted successfully",
+      "accepted": "Agreement accepted",
+      "rejected": "Agreement rejected",
+      "confirmed": "Agreement confirmed",
+      "noAgreements": "No agreements found",
+      "pdfDownload": "Generating PDF... (Feature coming soon)"
+    }
+  },
+  "interest": {
+    "submission": {
+      "title": "Submit Interest",
+      "cropLabel": "Crop Type",
+      "cropPlaceholder": "Select crop",
+      "seasonLabel": "Season",
+      "seasonPlaceholder": "Select season",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us about your interest...",
+      "requiredField": "This field is required",
+      "invalidNumber": "Please enter a valid number",
+      "invalidPrice": "Please enter a valid price",
+      "submit": "Submit Interest",
+      "submitting": "Submitting...",
+      "success": "Interest submitted successfully",
+      "error": "Failed to submit interest",
+      "formTitle": "Submit Interest Request",
+      "profileSummaryTitle": "Farmer Profile Summary",
+      "contractorProfileSummaryTitle": "Contractor Profile Summary"
+    }
+  },
+  "proposal": {
+    "creation": {
+      "title": "Create Proposal",
+      "description": "Fill in the details of your proposal for the farmer.",
+      "cropType": "Crop Type",
+      "cropLabel": "Crop Type",
+      "seasonLabel": "Season",
+      "quantityLabel": "Quantity",
+      "priceLabel": "Price",
+      "termsLabel": "Terms",
+      "submitButton": "Send Proposal",
+      "requiredField": "This field is required",
+      "invalidNumber": "Please enter a valid number",
+      "invalidPrice": "Please enter a valid price"
+    },
+    "status": {
+      "title": "Proposal Status",
+      "underReview": "Under Review",
+      "accepted": "Accepted",
+      "needsChanges": "Needs Changes",
+      "underReviewInfo": {
+        "title": "Proposal Under Review",
+        "message": "The farmer is reviewing your proposal. You'll be notified of their decision."
+      },
+      "acceptedInfo": {
+        "title": "Proposal Accepted!",
+        "message": "The farmer has accepted your proposal. You can now communicate and finalize the agreement."
+      },
+      "needsChangesInfo": {
+        "title": "Changes Requested",
+        "message": "The farmer has requested changes to your proposal."
+      },
+      "checkBackLater": "Check back later for updates.",
+      "goToCommunication": "Go to Communication",
+      "backToProfile": "Back to Profile",
+      "makeChanges": "Make Changes",
+      "refreshStatus": "Refresh Status"
+    }
+    ,
+    "cancel": "Cancel",
+    "cancelling": "Cancelling...",
+    "cancelledSuccess": "Request cancelled",
+    "cancelError": "Failed to cancel request",
+    "pendingMessage": "Please wait for the receiver to accept your request"
   }
 }
