@@ -261,7 +261,7 @@ const SignUpPage = () => {
               <button type="button" onClick={handleBack} className="p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
                 {t('signUp.backButton')}
               </button>
-              <button type="submit" className="p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 bg-green-500 text-white hover:bg-green-600">
+              <button type="submit" className="p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 text-white" style={{backgroundColor: userType === 'farmer' ? '#0db60c' : '#29003b'}} onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }} onMouseLeave={(e) => { e.target.style.opacity = '1'; }}>
                 {t('signUp.createAccountButton')}
               </button>
             </div>

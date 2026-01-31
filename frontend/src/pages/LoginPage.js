@@ -183,7 +183,10 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={forgotPasswordLoading}
-                className="flex-1 p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{backgroundColor: '#0db60c'}}
+                onMouseEnter={(e) => { if (!forgotPasswordLoading) e.target.style.opacity = '0.8'; }}
+                onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
               >
                 {forgotPasswordLoading ? t('login.sending') : t('login.sendResetLink')}
               </button>
@@ -200,7 +203,7 @@ const LoginPage = () => {
             </div>
             
             <div className="text-center mt-6">
-              <p>{t('login.noAccount')} <button onClick={handleSignUpRedirect} className="bg-none border-none text-green-500 cursor-pointer underline font-medium">{t('login.signUp')}</button></p>
+              <p>{t('login.noAccount')} <button onClick={handleSignUpRedirect} className="bg-none border-none cursor-pointer underline font-medium" style={{color: '#0db60c'}}>{t('login.signUp')}</button></p>
             </div>
           </form>
         ) : (
@@ -267,7 +270,7 @@ const LoginPage = () => {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-sm text-green-600 hover:text-green-800 font-medium"
+                className="text-sm font-medium" style={{color: '#0db60c'}}
               >
                 {t('login.forgotPassword')}
               </button>
@@ -277,7 +280,7 @@ const LoginPage = () => {
               <button type="button" onClick={handleBack} className="p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
                 {t('login.backButton')}
               </button>
-              <button type="submit" disabled={loading} className="p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="submit" disabled={loading} className="p-3 border-none rounded cursor-pointer font-medium transition-bg duration-300 text-white disabled:opacity-50 disabled:cursor-not-allowed" style={{backgroundColor: '#0db60c'}} onMouseEnter={(e) => { if (!loading) e.target.style.opacity = '0.8'; }} onMouseLeave={(e) => { e.target.style.opacity = '1'; }}>
                 {loading ? t('login.signingIn') : t('login.loginButton')}
               </button>
             </div>

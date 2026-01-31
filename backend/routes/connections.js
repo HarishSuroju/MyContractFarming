@@ -4,6 +4,7 @@ const {
   getConnectionRequestById,
   updateConnectionRequestStatus,
   getUserConnectionRequests,
+  cancelConnectionRequest,
   createProposal,
   getProposalById,
   updateProposalStatus,
@@ -17,6 +18,7 @@ const router = express.Router();
 router.post('/requests', authenticateToken, createConnectionRequest);
 router.get('/requests/:requestId', authenticateToken, getConnectionRequestById);
 router.patch('/requests/:requestId/status', authenticateToken, updateConnectionRequestStatus);
+router.delete('/requests/:requestId', authenticateToken, cancelConnectionRequest);
 router.get('/requests', authenticateToken, getUserConnectionRequests);
 
 // Proposals

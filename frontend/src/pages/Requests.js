@@ -14,6 +14,7 @@ const Requests = () => {
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [outgoingRequests, setOutgoingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState({});
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -91,7 +92,7 @@ const Requests = () => {
   };
 
   const confirmAccept = async () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !showAcceptModal) return;
 
     try {
       // Disable buttons and show loading
@@ -107,14 +108,11 @@ const Requests = () => {
       setIncomingRequests(prev => prev.filter(req => req._id !== selectedRequest._id));
 
       // Show success toast
-      showToast('Request accepted successfully', 'success');
+      showToast(t('connection.acceptSuccess') || 'Request accepted successfully', 'success');
 
       // Close modal
       setShowAcceptModal(false);
       setSelectedRequest(null);
-
-      // Notify sender that their request was accepted
-      showToast('Your request was accepted', 'success');
       
       // Unlock next actions on UI (e.g., start audio/video call, create agreement)
       console.log('Request accepted, next actions unlocked for this connection');
@@ -131,7 +129,7 @@ const Requests = () => {
   };
 
   const confirmReject = async () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !showRejectModal) return;
 
     try {
       // Disable buttons
@@ -147,14 +145,11 @@ const Requests = () => {
       setIncomingRequests(prev => prev.filter(req => req._id !== selectedRequest._id));
 
       // Show rejection toast
-      showToast('Request rejected successfully', 'success');
+      showToast(t('connection.rejectSuccess') || 'Request rejected successfully', 'success');
 
       // Close modal
       setShowRejectModal(false);
       setSelectedRequest(null);
-
-      // Notify sender
-      showToast('Your request was rejected', 'success');
     } catch (error) {
       console.error('Error rejecting request:', error);
       showToast('Failed to reject request', 'error');
@@ -167,10 +162,37 @@ const Requests = () => {
     }
   };
 
+  const handleCancelRequest = async (request) => {
+    try {
+      // Close any open accept/reject UI to avoid duplicate toasts
+      setShowAcceptModal(false);
+      setShowRejectModal(false);
+      setSelectedRequest(null);
+
+      setCancelling(prev => ({ ...prev, [request._id]: true }));
+      await connectionAPI.cancelConnectionRequest(request._id);
+
+      // Remove from both lists just in case
+      setIncomingRequests(prev => prev.filter(r => r._id !== request._id));
+      setOutgoingRequests(prev => prev.filter(r => r._id !== request._id));
+
+      showToast(t('connection.cancelledSuccess') || 'Request cancelled', 'success');
+    } catch (err) {
+      console.error('Cancel request error:', err);
+      showToast(t('connection.cancelError') || 'Failed to cancel request', 'error');
+    } finally {
+      setCancelling(prev => {
+        const copy = { ...prev };
+        delete copy[request._id];
+        return copy;
+      });
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'accepted':
         return 'bg-green-100 text-green-800';
       case 'rejected':
@@ -186,6 +208,8 @@ const Requests = () => {
 
   const renderRequestCard = (request, isHighlighted = false) => {
     const isPending = request.status === 'pending';
+    const currentUserId = localStorage.getItem('userId');
+    const isReceiver = request.receiverId === currentUserId;
     const cardRef = highlightRequestId === request._id ? highlightedRef : null;
 
     return (
@@ -204,11 +228,15 @@ const Requests = () => {
       >
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="flex-1" onClick={() => {
-            // Determine the other user's ID based on whether this is an incoming or outgoing request
-            const currentUserId = localStorage.getItem('userId');
-            const otherUserId = request.senderId === currentUserId ? request.receiverId : request.senderId;
-            navigate(`/communication/${otherUserId}`);
-          }} style={{ cursor: 'pointer' }}>
+            // Only navigate to communication when the request is accepted
+            if (request.status === 'accepted') {
+              const currentUserIdInner = localStorage.getItem('userId');
+              const otherUserId = request.senderId === currentUserIdInner ? request.receiverId : request.senderId;
+              navigate(`/communication/${otherUserId}`);
+            } else {
+              showToast('Please wait until the connection is accepted to start communication', 'info');
+            }
+          }} style={{ cursor: request.status === 'accepted' ? 'pointer' : 'default' }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-lg">
                 {request.senderName?.charAt(0).toUpperCase()}
@@ -257,55 +285,56 @@ const Requests = () => {
               <span className="text-xs text-gray-500">
                 {formatDate(request.createdAt)}
               </span>
-              
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                {request.status === 'pending' 
-                  ? t('Pending')
-                  : request.status === 'accepted' 
-                    ? t('Accepted')
-                    : t('Rejected')}
-              </span>
+
+              {/* For outgoing pending requests show Cancel next to date (swap positions) */}
+              {isPending && !isReceiver ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleCancelRequest(request); }}
+                  disabled={!!cancelling[request._id]}
+                  className="px-3 py-1 rounded text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50"
+                >
+                  {cancelling[request._id] ? t('connection.cancelling') || 'Cancelling...' : t('connection.cancel')}
+                </button>
+              ) : null}
             </div>
           </div>
           
-          {isPending && (
-            <div className="flex flex-col sm:flex-row gap-2 self-start">
-              <button
-                id={`accept-${request._id}`}
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the card click
-                  handleAcceptRequest(request);
-                }}
-                disabled={loading}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
-              >
-                {t('connection.accept')}
-              </button>
-              <button
-                id={`reject-${request._id}`}
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering the card click
-                  handleRejectRequest(request);
-                }}
-                disabled={loading}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
-              >
-                {t('connection.reject')}
-              </button>
-            </div>
-          )}
-          
-          {!isPending && (
-            <div className="self-start">
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                {request.status === 'accepted' 
-                  ? t('Accepted')
-                  : t('Rejected')}
-              </span>
-              
-              {/* All action buttons removed as per requirement */}
-            </div>
-          )}
+          <div className="self-start">
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+              {request.status === 'pending' 
+                ? t('connection.status.pending')
+                : request.status === 'accepted' 
+                  ? t('connection.status.accepted')
+                  : t('connection.status.rejected')}
+            </span>
+
+            {isPending && isReceiver && (
+              <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                <button
+                  id={`accept-${request._id}`}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the card click
+                    handleAcceptRequest(request);
+                  }}
+                  disabled={loading}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
+                >
+                  {t('connection.accept')}
+                </button>
+                <button
+                  id={`reject-${request._id}`}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the card click
+                    handleRejectRequest(request);
+                  }}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
+                >
+                  {t('connection.reject')}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

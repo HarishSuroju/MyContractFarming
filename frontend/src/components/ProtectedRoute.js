@@ -1,13 +1,14 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import LoginPrompt from './LoginPrompt';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('userRole');
 
-  // If no token, redirect to login
+  // If no token, show login prompt
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <LoginPrompt />;
   }
 
   // If specific role required and user doesn't have it, redirect to unauthorized

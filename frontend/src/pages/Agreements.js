@@ -128,7 +128,10 @@ const Agreements = () => {
           <div className="no-agreements text-center py-10">
             <p className="text-gray-600 text-lg">You don't have any agreements yet.</p>
             <button 
-              className="mt-4 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg"
+              className="mt-4 text-white px-6 py-3 rounded-lg"
+              style={{backgroundColor: '#0db60c'}}
+              onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
+              onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
               onClick={() => navigate('/users-directory')}
             >
               Find Partners
@@ -188,7 +191,7 @@ const Agreements = () => {
                     {agreement.status === 'pending' && (
                       <>
                         <button
-                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          className="px-4 py-2 text-white rounded-lg transition-colors" style={{backgroundColor: '#0db60c'}} onMouseEnter={(e) => e.target.style.opacity = '0.8'} onMouseLeave={(e) => e.target.style.opacity = '1'}
                           onClick={() => handleUpdateStatus(agreement._id, 'accepted')}
                         >
                           Accept
@@ -231,7 +234,10 @@ const Agreements = () => {
           </button>
           <button 
             onClick={() => navigate('/users-directory')}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg"
+            className="text-white px-6 py-3 rounded-lg"
+            style={{backgroundColor: '#0db60c'}}
+            onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
+            onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
           >
             Find More Partners
           </button>

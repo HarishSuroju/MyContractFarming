@@ -20,7 +20,9 @@ const ContractorInterestSubmission = () => {
     crop: '',
     season: '',
     quantity: '',
+    quantityUnit: 'Acres',
     expectedPrice: '',
+    currency: 'INR',
     message: ''
   });
   
@@ -30,6 +32,13 @@ const ContractorInterestSubmission = () => {
   // Available crops and seasons (these could come from API in real implementation)
   const availableCrops = ['Rice', 'Wheat', 'Maize', 'Cotton', 'Soybean', 'Coffee', 'Tea', 'Sugarcane'];
   const availableSeasons = ['Kharif', 'Rabi', 'Zaid'];
+  
+  // Unit and currency options
+  const quantityUnits = ['Acres', 'Hectares'];
+  const currencies = [
+    { code: 'INR', symbol: '₹', label: 'Rupees' },
+    { code: 'USD', symbol: '$', label: 'Dollars' }
+  ];
 
   // Fetch farmer profile
   useEffect(() => {
@@ -101,10 +110,18 @@ const ContractorInterestSubmission = () => {
       errors.quantity = 'Please enter a valid positive number';
     }
     
+    if (!formData.quantityUnit.trim()) {
+      errors.quantityUnit = 'Measurement unit is required';
+    }
+    
     if (!formData.expectedPrice.trim()) {
       errors.expectedPrice = 'Expected price is required';
     } else if (isNaN(formData.expectedPrice) || parseFloat(formData.expectedPrice) <= 0) {
       errors.expectedPrice = 'Please enter a valid positive price';
+    }
+    
+    if (!formData.currency.trim()) {
+      errors.currency = 'Currency is required';
     }
     
     if (formData.message.trim().length > 500) {
@@ -150,7 +167,9 @@ const ContractorInterestSubmission = () => {
         cropType: formData.crop,
         season: formData.season,
         landArea: parseFloat(formData.quantity),
+        quantityUnit: formData.quantityUnit,
         expectedPrice: parseFloat(formData.expectedPrice),
+        currency: formData.currency,
         message: formData.message.trim(),
         submittedAt: new Date().toISOString()
       };
@@ -164,7 +183,7 @@ const ContractorInterestSubmission = () => {
       
       // Redirect after success
       setTimeout(() => {
-        navigate(`/communication/${userId}`);
+        navigate(`/user-profile/${userId}`);
       }, 2000);
       
     } catch (err) {
@@ -344,22 +363,46 @@ const ContractorInterestSubmission = () => {
                 <label htmlFor="quantity" className="block text-sm font-bold text-gray-700 mb-2">
                   Quantity (in acres/hectares) *
                 </label>
-                <input
-                  type="number"
-                  id="quantity"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleInputChange}
-                  placeholder="Enter quantity"
-                  min="0.1"
-                  step="0.1"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                    formErrors.quantity ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {formErrors.quantity && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.quantity}</p>
-                )}
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      id="quantity"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleInputChange}
+                      placeholder="Enter quantity"
+                      min="0.1"
+                      step="0.1"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        formErrors.quantity ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {formErrors.quantity && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.quantity}</p>
+                    )}
+                  </div>
+                  <div className="w-40">
+                    <select
+                      name="quantityUnit"
+                      value={formData.quantityUnit}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        formErrors.quantityUnit ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select unit</option>
+                      {quantityUnits.map(unit => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.quantityUnit && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.quantityUnit}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Expected Price */}
@@ -367,22 +410,46 @@ const ContractorInterestSubmission = () => {
                 <label htmlFor="expectedPrice" className="block text-sm font-bold text-gray-700 mb-2">
                   Expected Price (per acre/hectare) *
                 </label>
-                <input
-                  type="number"
-                  id="expectedPrice"
-                  name="expectedPrice"
-                  value={formData.expectedPrice}
-                  onChange={handleInputChange}
-                  placeholder="Enter expected price"
-                  min="1"
-                  step="1"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                    formErrors.expectedPrice ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {formErrors.expectedPrice && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.expectedPrice}</p>
-                )}
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      id="expectedPrice"
+                      name="expectedPrice"
+                      value={formData.expectedPrice}
+                      onChange={handleInputChange}
+                      placeholder="Enter expected price"
+                      min="1"
+                      step="1"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        formErrors.expectedPrice ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {formErrors.expectedPrice && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.expectedPrice}</p>
+                    )}
+                  </div>
+                  <div className="w-40">
+                    <select
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                        formErrors.currency ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select currency</option>
+                      {currencies.map(curr => (
+                        <option key={curr.code} value={curr.code}>
+                          {curr.symbol} {curr.label}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.currency && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.currency}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

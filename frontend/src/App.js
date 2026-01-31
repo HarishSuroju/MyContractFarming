@@ -50,29 +50,29 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/profile-builder" element={<ProtectedRoute><ProfileBuilder /></ProtectedRoute>} />
-            <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
-            <Route path="/contractor-dashboard" element={<ContractorDashboard />} />
-            <Route path="/user-matching" element={<UserMatching />} />
-            <Route path="/agreement-creation" element={<AgreementCreation />} />
-            <Route path="/agreements" element={<Agreements />} />
-            <Route path="/user-profile/:userId" element={<UserProfileDetail />} />
+            <Route path="/farmer-dashboard" element={<ProtectedRoute><FarmerDashboard /></ProtectedRoute>} />
+            <Route path="/contractor-dashboard" element={<ProtectedRoute><ContractorDashboard /></ProtectedRoute>} />
+            <Route path="/user-matching" element={<ProtectedRoute><UserMatching /></ProtectedRoute>} />
+            <Route path="/agreement-creation" element={<ProtectedRoute><AgreementCreation /></ProtectedRoute>} />
+            <Route path="/agreements" element={<ProtectedRoute><Agreements /></ProtectedRoute>} />
+            <Route path="/user-profile/:userId" element={<ProtectedRoute><UserProfileDetail /></ProtectedRoute>} />
             <Route path="/help" element={<HelpPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/connection-request/:userId" element={<ConnectionRequestConfirmation />} />
-            <Route path="/connection-status/:userId" element={<RequestStatus />} />
-            <Route path="/communication/:userId" element={<CommunicationPage />} />
-            <Route path="/agreement-summary/:userId" element={<AgreementSummary />} />
-            <Route path="/farmer-interest/:userId" element={<FarmerInterestRequest />} />
-            <Route path="/contractor-interest/:userId" element={<ContractorInterestSubmission />} />
-            <Route path="/farmer-contractor-connection/:userId" element={<FarmerToContractorConnection />} />
-            <Route path="/proposal-create/:userId" element={<ProposalCreation />} />
-            <Route path="/proposal-status/:userId" element={<ProposalStatus />} />
-            <Route path="/agreement-manager" element={<AgreementManager />} />
-            <Route path="/agreement-manager/:agreementId" element={<AgreementManager />} />
-            <Route path="/agreement-report/:agreementId" element={<AgreementReport />} />
-            <Route path="/agreement-edit/:agreementId" element={<AgreementEdit />} />
-            <Route path="/connection-requests" element={<ConnectionRequests />} />
-            <Route path="/dashboard/requests" element={<Requests />} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/connection-request/:userId" element={<ProtectedRoute><ConnectionRequestConfirmation /></ProtectedRoute>} />
+            <Route path="/connection-status/:userId" element={<ProtectedRoute><RequestStatus /></ProtectedRoute>} />
+            <Route path="/communication/:userId" element={<ProtectedRoute><CommunicationPage /></ProtectedRoute>} />
+            <Route path="/agreement-summary/:userId" element={<ProtectedRoute><AgreementSummary /></ProtectedRoute>} />
+            <Route path="/farmer-interest/:userId" element={<ProtectedRoute><FarmerInterestRequest /></ProtectedRoute>} />
+            <Route path="/contractor-interest/:userId" element={<ProtectedRoute><ContractorInterestSubmission /></ProtectedRoute>} />
+            <Route path="/farmer-contractor-connection/:userId" element={<ProtectedRoute><FarmerToContractorConnection /></ProtectedRoute>} />
+            <Route path="/proposal-create/:userId" element={<ProtectedRoute><ProposalCreation /></ProtectedRoute>} />
+            <Route path="/proposal-status/:userId" element={<ProtectedRoute><ProposalStatus /></ProtectedRoute>} />
+            <Route path="/agreement-manager" element={<ProtectedRoute><AgreementManager /></ProtectedRoute>} />
+            <Route path="/agreement-manager/:agreementId" element={<ProtectedRoute><AgreementManager /></ProtectedRoute>} />
+            <Route path="/agreement-report/:agreementId" element={<ProtectedRoute><AgreementReport /></ProtectedRoute>} />
+            <Route path="/agreement-edit/:agreementId" element={<ProtectedRoute><AgreementEdit /></ProtectedRoute>} />
+            <Route path="/connection-requests" element={<ProtectedRoute><ConnectionRequests /></ProtectedRoute>} />
+            <Route path="/dashboard/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/users-directory" element={<UsersDirectory />} />

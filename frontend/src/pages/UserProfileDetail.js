@@ -254,7 +254,10 @@ const UserProfileDetail = () => {
           {/* Connect Button */}
           <button
             onClick={handleConnect}
-            className={`w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 border-2 ${isFarmer ? 'bg-gradient-to-r from-green-500 to-green-600 border-green-500 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-500 hover:from-blue-600 hover:to-blue-700'}`}
+            className="w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 border-2"
+            style={{backgroundColor: isFarmer ? '#0db60c' : '#29003b', borderColor: isFarmer ? '#0db60c' : '#29003b'}}
+            onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
+            onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
           >
             {t('profileDetail.connectButton')}
           </button>

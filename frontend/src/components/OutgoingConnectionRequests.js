@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { connectionAPI } from '../services/api';
 
 const OutgoingConnectionRequests = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [cancelling, setCancelling] = useState({});
 
   useEffect(() => {
     fetchConnectionRequests();
@@ -34,6 +37,34 @@ const OutgoingConnectionRequests = () => {
     setTimeout(() => {
       setToast({ show: false, message: '', type: '' });
     }, 3000);
+  };
+
+  const handleCardClick = (request) => {
+    if (request.status === 'accepted') {
+      navigate(`/communication/${request.receiverId}`);
+    } else if (request.status === 'pending') {
+      showToast(t('connection.status.pendingMessage') || 'Please wait for the receiver to accept your request', 'info');
+    }
+  };
+
+  const handleCancelRequest = async (requestId) => {
+    try {
+      // ensure any global selection/modals are cleared (defensive)
+      // (Requests page manages its own modals)
+      setCancelling(prev => ({ ...prev, [requestId]: true }));
+      await connectionAPI.cancelConnectionRequest(requestId);
+      setRequests(prev => prev.filter(r => r._id !== requestId));
+      showToast(t('connection.cancelledSuccess') || 'Request cancelled', 'success');
+    } catch (err) {
+      console.error('Cancel request error:', err);
+      showToast(err.response?.data?.message || t('connection.cancelError') || 'Failed to cancel request', 'error');
+    } finally {
+      setCancelling(prev => {
+        const copy = { ...prev };
+        delete copy[requestId];
+        return copy;
+      });
+    }
   };
 
   if (loading) {
@@ -65,8 +96,13 @@ const OutgoingConnectionRequests = () => {
       <div className="space-y-4">
         {requests.map((request) => (
           <div 
-            key={request._id} 
-            className={`p-4 rounded-lg border ${
+            key={request._id}
+            onClick={() => handleCardClick(request)}
+            className={`p-4 rounded-lg border transition-all ${
+              request.status === 'accepted' 
+                ? 'cursor-pointer hover:shadow-lg hover:border-green-400' 
+                : 'cursor-default'
+            } ${
               request.status === 'pending' 
                 ? 'border-gray-200 bg-gray-50' 
                 : request.status === 'accepted'
@@ -106,14 +142,26 @@ const OutgoingConnectionRequests = () => {
                   </div>
                 )}
                 
-                <div className="text-xs text-gray-500">
-                  {new Date(request.createdAt).toLocaleString()}
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-500">{new Date(request.createdAt).toLocaleString()}</div>
+
+                  {request.status === 'pending' && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleCancelRequest(request._id); }}
+                      disabled={!!cancelling[request._id]}
+                      className="ml-2 px-3 py-1 rounded text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50"
+                    >
+                      {cancelling[request._id] ? t('connection.cancelling') || 'Cancelling...' : t('connection.cancel') || 'Cancel'}
+                    </button>
+                  )}
                 </div>
               </div>
               
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+              <div className="flex items-center gap-3">
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
                 request.status === 'pending'
-                  ? 'bg-yellow-100 text-yellow-800'
+                  ? 'bg-orange-100 text-orange-800 border-orange-300'
                   : request.status === 'accepted'
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
@@ -123,6 +171,21 @@ const OutgoingConnectionRequests = () => {
                   : request.status === 'accepted' 
                     ? t('connection.status.accepted')
                     : t('connection.status.rejected')}
+                </div>
+
+                {/* Cancel button for pending outgoing requests */}
+                {request.status === 'pending' && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleCancelRequest(request._id); }}
+                      disabled={!!cancelling[request._id]}
+                      className="ml-2 px-3 py-1 rounded text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50"
+                    >
+                      {cancelling[request._id] ? t('connection.cancelling') || 'Cancelling...' : t('connection.cancel') || 'Cancel'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
