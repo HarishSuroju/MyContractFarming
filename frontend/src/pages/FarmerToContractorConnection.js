@@ -121,33 +121,33 @@ const FarmerToContractorConnection = () => {
     const errors = {};
     
     if (!formData.cropType.trim()) {
-      errors.cropType = t('interest.submission.requiredField');
+      errors.cropType = t('requiredField');
     }
     
     if (!formData.season.trim()) {
-      errors.season = t('interest.submission.requiredField');
+      errors.season = t('requiredField');
     }
     
     if (!formData.landArea.trim()) {
-      errors.landArea = t('interest.submission.requiredField');
+      errors.landArea = t('requiredField');
     } else if (isNaN(formData.landArea) || parseFloat(formData.landArea) <= 0) {
-      errors.landArea = t('interest.submission.invalidNumber');
+      errors.landArea = t('invalidNumber');
     }
     if (!formData.areaUnit || !formData.areaUnit.trim()) {
-      errors.areaUnit = t('interest.submission.requiredField');
+      errors.areaUnit = t('requiredField');
     }
     
     if (!formData.expectedPrice.trim()) {
-      errors.expectedPrice = t('interest.submission.requiredField');
+      errors.expectedPrice = t('requiredField');
     } else if (isNaN(formData.expectedPrice) || parseFloat(formData.expectedPrice) <= 0) {
-      errors.expectedPrice = t('interest.submission.invalidPrice');
+      errors.expectedPrice = t('invalidNumber');
     }
     if (!formData.currency || !formData.currency.trim()) {
-      errors.currency = t('interest.submission.requiredField');
+      errors.currency = t('requiredField');
     }
     
     if (formData.message.trim().length > 500) {
-      errors.message = t('interest.submission.maxLength');
+      errors.message = t('maxLength');
     }
     
     setFormErrors(errors);
@@ -212,7 +212,7 @@ const FarmerToContractorConnection = () => {
       
     } catch (err) {
       console.error('Error submitting connection request:', err);
-      setError(err.response?.data?.message || t('connection.confirmation.errorMessage') || t('interest.submission.errorMessage') || 'Failed to submit connection request. Please try again.');
+      setError(err.response?.data?.message || t('errorMessage') || 'Failed to submit connection request. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -242,7 +242,7 @@ const FarmerToContractorConnection = () => {
             onClick={() => navigate('/users-directory')}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            {t('interest.submission.backToDirectory')}
+            {t('backToDirectory')}
           </button>
         </div>
       </div>
@@ -573,7 +573,7 @@ const FarmerToContractorConnection = () => {
                 className={`flex-1 py-4 px-8 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center ${
                   submitting 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-green-500 to-green-600 border-2 border-green-500 hover:from-green-600 hover:to-green-700'
+                    : (isContractor ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-2 border-blue-500 hover:from-blue-600 hover:to-blue-700' : 'bg-gradient-to-r from-green-500 to-green-600 border-2 border-green-500 hover:from-green-600 hover:to-green-700')
                 }`}
               >
                 {submitting ? (

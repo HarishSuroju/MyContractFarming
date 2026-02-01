@@ -9,11 +9,11 @@ export const colors = {
     name: 'Farmer'
   },
   contractor: {
-    primary: '#29003b',
-    light: 'rgba(41, 0, 59, 0.1)',
-    lighter: 'rgba(41, 0, 59, 0.05)',
-    gradient: 'linear-gradient(to bottom right, rgba(41, 0, 59, 0.05), rgba(41, 0, 59, 0.1))',
-    border: '4px solid #29003b',
+    primary: '#1661db',
+    light: 'rgba(22, 97, 219, 0.1)',
+    lighter: 'rgba(22, 97, 219, 0.05)',
+    gradient: 'linear-gradient(to bottom right, rgba(22, 97, 219, 0.05), rgba(22, 97, 219, 0.1))',
+    border: '4px solid #1661db',
     name: 'Contractor'
   }
 };

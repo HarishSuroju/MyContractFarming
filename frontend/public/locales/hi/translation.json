@@ -3,7 +3,7 @@
     "appName": "सुनिश्चित अनुबंध खेती",
     "home": "मुख्य पृष्ठ",
     "dashboard": "डैशबोर्ड",
-    "userDirectory": "उपयोगकर्ता निर्देशिका",
+    "userDirectory": "सदस्य",
     "help": "सहायता",
     "login": "लॉगिन",
     "signUp": "साइन अप",
@@ -27,7 +27,8 @@
   "navbar": {
     "home": "मुख्य पृष्ठ",
     "dashboard": "डैशबोर्ड",
-    "userDirectory": "उपयोगकर्ता निर्देशिका",
+    "connectionRequests": "कनेक्ट",
+    "userDirectory": "सदस्य",
     "help": "सहायता",
     "login": "लॉगिन",
     "signUp": "साइन अप",
@@ -35,8 +36,8 @@
     "profile": "प्रोफ़ाइल"
   },
   "userDirectory": {
-    "pageTitle": "उपयोगकर्ता निर्देशिका",
-    "searchPlaceholder": "नाम, कंपनी या स्थान के अनुसार खोजें...",
+    "pageTitle": "सदस्य",
+    "searchPlaceholder": "नाम, कंपनी या स्थान के अनुसार खोजें",
     "allCrops": "सभी फसलें",
     "allSeasons": "सभी मौसम",
     "allRoles": "सभी भूमिकाएं",
@@ -190,5 +191,15 @@
     "backButton": "वापस",
     "signingIn": "साइन इन किया जा रहा है...",
     "loginButton": "लॉगिन"
+  },
+  "profileEdit": {
+    "title": "प्रोफ़ाइल संपादित करें",
+    "accountInfoTitle": "खाता सूचना",
+    "farmerProfile": "किसान प्रोफ़ाइल",
+    "contractorProfile": "ठेकेदार प्रोफ़ाइल",
+    "searchCropsPlaceholder": "फसलों को खोजने के लिए टाइप करें...",
+    "cancel": "रद्द करें",
+    "save": "परिवर्तन सहेजें",
+    "saving": "सहेजा जा रहा है..."
   }
 }

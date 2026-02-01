@@ -27,6 +27,7 @@
   "navbar": {
     "home": "ഹോം",
     "dashboard": "ഡാഷ്ബോർഡ്",
+    "connectionRequests": "കണക്റ്റ്",
     "userDirectory": "ഉപയോക്തൃ ഡയറക്ടറി",
     "help": "സഹായം",
     "login": "ലോഗിൻ",

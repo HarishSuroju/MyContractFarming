@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 import Agreements from './pages/Agreements';
 import UsersDirectory from './pages/UsersDirectory';
 import UserProfileDetail from './pages/UserProfileDetail';
+import ProfileEdit from './pages/ProfileEdit';
 import Navbar from './components/Navbar';
 import ConnectionRequestConfirmation from './pages/ConnectionRequestConfirmation';
 import RequestStatus from './pages/RequestStatus';
@@ -36,6 +37,9 @@ import AgreementEdit from './pages/AgreementEdit';
 import ConnectionRequests from './pages/ConnectionRequests';
 import Requests from './pages/Requests';
 import ProtectedRoute from './components/ProtectedRoute';
+import Chatbot from './components/Chatbot';
+import FloatingChatButton from './components/FloatingChatButton';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -43,6 +47,7 @@ function App() {
       <Router>
         <div className="App">
           <Navbar />
+          <FloatingChatButton />
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<HomePage />} />
@@ -76,7 +81,10 @@ function App() {
             <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/users-directory" element={<UsersDirectory />} />
+            <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+            <Route path="/chatbot" element={<Chatbot />} />
           </Routes>
+          <Footer />
         </div>
       </Router>
     </I18nextProvider>

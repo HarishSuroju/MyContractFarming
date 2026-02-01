@@ -27,6 +27,7 @@
   "navbar": {
     "home": "முகப்பு",
     "dashboard": "டாஷ்போர்டு",
+    "connectionRequests": "இணைப்பு",
     "userDirectory": "பயனர் அடைவு",
     "help": "உதவி",
     "login": "உள்நுழை",

@@ -16,6 +16,7 @@ const connectionRoutes = require('./routes/connections');
 const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const messageRoutes = require('./routes/messages');
+const chatbotRoutes = require('./routes/chatbot');
 
 // App initialization
 const app = express();
@@ -225,6 +226,7 @@ app.use('/api/connections', connectionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
