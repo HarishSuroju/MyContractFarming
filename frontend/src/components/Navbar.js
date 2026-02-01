@@ -5,6 +5,7 @@ import { authAPI } from '../services/api';
 import { getThemeByRole } from '../utils/colorTheme';
 import NotificationBell from './NotificationBell';
 import { FaHome, FaTachometerAlt, FaUserFriends, FaUserPlus, FaSignInAlt, FaSignOutAlt, FaUser, FaBell, FaCogs, FaQuestionCircle, FaRobot } from 'react-icons/fa';
+import logo from '../assets/Photos/Logo.png';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
@@ -88,8 +89,13 @@ const Navbar = () => {
   return (
     <nav className="flex justify-between items-center px-4 md:px-5 text-white shadow-md fixed top-0 w-full h-12 z-50 overflow-visible md:overflow-hidden" style={{backgroundColor: navbarBgColor}}>
       <div className="flex items-center">
-        <Link to="/" className="text-white no-underline">
-          <h2 className="m-0 text-lg md:text-xl">{t('common.appName')}</h2>
+        <Link to="/" className="text-white no-underline flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Logo" className="h-6 w-6 object-contain" />
+          </div>
+          <span className="text-lg md:text-xl font-semibold leading-none">
+            {t('common.appName')}
+          </span>
         </Link>
       </div>
       
