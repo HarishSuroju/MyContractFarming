@@ -93,7 +93,10 @@ export const profileAPI = {
       },
     });
     return publicApi.get(`/api/profile/user/${userId}`);
-  }
+  },
+
+  // Get all users from the profile directory
+  getAllUsers: () => api.get('/profile/all')
 };
 
 // Agreement API calls

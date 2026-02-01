@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Assured Contract Farming Platform",
   "main": "backend/server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",

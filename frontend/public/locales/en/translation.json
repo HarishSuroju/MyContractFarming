@@ -3,7 +3,7 @@
     "appName": "Assured Contract Farming",
     "home": "Home",
     "dashboard": "Dashboard",
-    "userDirectory": "User Directory",
+    "userDirectory": "Members",
     "help": "Help",
     "login": "Login",
     "signUp": "Sign Up",
@@ -27,7 +27,8 @@
   "navbar": {
     "home": "Home",
     "dashboard": "Dashboard",
-    "userDirectory": "User Directory",
+    "connectionRequests": "Connect",
+    "userDirectory": "Members",
     "help": "Help",
     "login": "Login",
     "signUp": "Sign Up",
@@ -107,7 +108,7 @@
     "loading": "Loading profile data..."
   },
   "userDirectory": {
-    "title": "User Directory",
+    "title": "Members",
     "searchPlaceholder": "Search by name, company, or location...",
     "allCrops": "All Crops",
     "rice": "Rice",
@@ -205,7 +206,7 @@
     "loginMessage": "Please log in to access this page."
   },
   "connection": {
-    "requestsPageTitle": "Connection Requests",
+    "requestsPageTitle": "Connect",
     "incomingRequests": "Incoming Requests",
     "outgoingRequests": "Outgoing Requests",
     "noIncomingRequests": "No incoming requests",
@@ -213,6 +214,11 @@
     "accept": "Accept",
     "reject": "Reject",
     "pending": "Pending",
+    "cancel": "Cancel",
+    "acceptSuccess": "Request accepted successfully",
+    "rejectSuccess": "Request rejected successfully",
+    "cancelSuccess": "Request cancelled successfully",
+    
     "status": {
       "title": "Connection Status",
       "pending": "Pending",
@@ -351,5 +357,42 @@
     "cancelledSuccess": "Request cancelled",
     "cancelError": "Failed to cancel request",
     "pendingMessage": "Please wait for the receiver to accept your request"
+  },
+  "profileEdit": {
+    "title": "Edit Profile",
+    "accountInfoTitle": "Account Information",
+    "farmerProfile": "Farmer Profile",
+    "contractorProfile": "Contractor Profile",
+    "searchCropsPlaceholder": "Type to search crops...",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "saving": "Saving..."
+  },
+  "footer": {
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyright": "© 2026 Assured Contract Farming. ",
+    "allRightsReserved": "All rights reserved.",
+    "quickLinks": "Quick Links",
+    "followUs": "Follow Us",
+    "newsletterTitle": "Subscribe to our Newsletter",
+    "newsletterDesc": "Stay updated with our latest news and offers.",
+    "emailPlaceholder": "Enter your email address",
+    "subscribe": "Subscribe",
+    "description": "Connecting farmers and contractors through secure smart contracts for fair pricing and reliable partnerships.",
+    "about": "About",
+    "howItWorks": "How It Works",
+    "benefits": "Benefits",
+    "successStories": "Success Stories",
+    "resources": "Resources",
+    "blog": "Blog",
+    "faq": "FAQ",
+    "support": "Support",
+    "documentation": "Documentation",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email"
   }
 }

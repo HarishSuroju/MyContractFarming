@@ -412,17 +412,7 @@ const updateProposalStatus = async (req, res) => {
   }
 };
 
-module.exports = {
-  createConnectionRequest,
-  getConnectionRequestById,
-  updateConnectionRequestStatus,
-  getUserConnectionRequests,
-  createProposal,
-  getProposalById,
-  updateProposalStatus,
-  getUserProposals,
-  cancelConnectionRequest
-};
+
 
 // Cancel connection request (sender can cancel before receiver acts)
 const cancelConnectionRequest = async (req, res) => {
@@ -467,4 +457,16 @@ const cancelConnectionRequest = async (req, res) => {
     console.error('Cancel connection request error:', error);
     res.status(500).json({ status: 'error', message: 'Server error while cancelling connection request' });
   }
+};
+
+module.exports = {
+  createConnectionRequest,
+  getConnectionRequestById,
+  updateConnectionRequestStatus,
+  getUserConnectionRequests,
+  createProposal,
+  getProposalById,
+  updateProposalStatus,
+  getUserProposals,
+  cancelConnectionRequest
 };

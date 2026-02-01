@@ -171,6 +171,7 @@ const getAllUsers = async (req, res) => {
         phone: user.phone,
         role: user.role,
         profileComplete: user.profileComplete,
+        profilePhoto: user.profilePhoto,
         profile: profile ? {
           ...(profileType === 'farmer' ? {
             landSize: profile.landSize,
@@ -260,6 +261,7 @@ const getUserById = async (req, res) => {
       phone: user.phone,
       role: user.role,
       profileComplete: user.profileComplete,
+      profilePhoto: user.profilePhoto,
       profile: profile ? {
         ...(profileType === 'farmer' ? {
           landSize: profile.landSize,

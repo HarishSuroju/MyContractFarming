@@ -488,7 +488,7 @@ const ContractorInterestSubmission = () => {
                 className={`flex-1 py-4 px-8 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center ${
                   submitting 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-green-500 to-green-600 border-2 border-green-500 hover:from-green-600 hover:to-green-700'
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 border-2 border-blue-500 hover:from-blue-600 hover:to-blue-700'
                 }`}
               >
                 {submitting ? (

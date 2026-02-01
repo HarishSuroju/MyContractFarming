@@ -366,9 +366,17 @@ const UsersDirectory = () => {
                       roleClass === 'farmer'
                         ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-green-300'
                         : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-300'
-                    }`}
+                    } overflow-hidden`}
                   >
-                    {initials}
+                    {user.profilePhoto ? (
+                      <img 
+                        src={user.profilePhoto} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
                   </div>
                   
                   <div className="flex-1 flex flex-col justify-between">
@@ -405,9 +413,6 @@ const UsersDirectory = () => {
                           <div className="text-sm">
                             <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.landSize')}:</span> {user.landSize}
                           </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.phone')}:</span> {user.phone}
-                          </div>
                         </>
                       ) : (
                         <>
@@ -423,12 +428,6 @@ const UsersDirectory = () => {
                           <div className="text-sm">
                             <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.projects')}:</span> {user.projects}
                           </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.phone')}:</span> {user.phone}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.email')}:</span> {user.email}
-                          </div>
                         </>
                       )}
                     </div>
@@ -437,8 +436,8 @@ const UsersDirectory = () => {
                       onClick={() => viewMore(user.id)}
                       className="self-start px-6 py-2.5 rounded-lg font-semibold text-sm border-2 transition-all duration-200 hover:scale-105 text-white"
                       style={{
-                        backgroundColor: roleClass === 'farmer' ? '#0db60c' : '#29003b',
-                        borderColor: roleClass === 'farmer' ? '#0db60c' : '#29003b'
+                        backgroundColor: roleClass === 'farmer' ? '#0db60c' : '#1661db',
+                        borderColor: roleClass === 'farmer' ? '#0db60c' : '#1661db'
                       }}
                       onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
                       onMouseLeave={(e) => { e.target.style.opacity = '1'; }}

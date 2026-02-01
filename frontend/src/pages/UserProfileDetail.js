@@ -142,8 +142,16 @@ const UserProfileDetail = () => {
           <div className="absolute inset-0 bg-black bg-opacity-10"></div>
           
           <div className="relative z-10">
-            <div className={`w-32 h-32 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-bold shadow-lg ${isFarmer ? 'bg-green-400 bg-opacity-25' : 'bg-blue-400 bg-opacity-25'} border-4 border-white border-opacity-40`}>
-              {getInitials(user.name)}
+            <div className={`w-32 h-32 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-bold shadow-lg ${isFarmer ? 'bg-green-400 bg-opacity-25' : 'bg-blue-400 bg-opacity-25'} border-4 border-white border-opacity-40 overflow-hidden`}>
+              {user.profilePhoto ? (
+                <img 
+                  src={user.profilePhoto} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{getInitials(user.name)}</span>
+              )}
             </div>
             
             <h1 className="text-4xl font-bold mb-3">{user.name}</h1>
@@ -255,7 +263,7 @@ const UserProfileDetail = () => {
           <button
             onClick={handleConnect}
             className="w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 border-2"
-            style={{backgroundColor: isFarmer ? '#0db60c' : '#29003b', borderColor: isFarmer ? '#0db60c' : '#29003b'}}
+            style={{backgroundColor: isFarmer ? '#0db60c' : '#1661db', borderColor: isFarmer ? '#0db60c' : '#1661db'}}
             onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
             onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
           >

@@ -25,8 +25,8 @@ const ProfilePage = () => {
         const userProfileResponse = await authAPI.getProfile();
         setUser(userProfileResponse.data.data.user);
         // Set profile image from user data
-        setProfileImage(userProfileResponse.data.data.user.profileImage);
-        setImagePreview(userProfileResponse.data.data.user.profileImage || '/api/placeholder/150/150');
+        setProfileImage(userProfileResponse.data.data.user.profilePhoto);
+        setImagePreview(userProfileResponse.data.data.user.profilePhoto || '/api/placeholder/150/150');
         
         const profileResponse = await profileAPI.getProfile();
         setProfile(profileResponse.data.data.profile);
@@ -91,6 +91,10 @@ const ProfilePage = () => {
 
   const handleCompleteProfile = () => {
     navigate('/profile-builder');
+  };
+  
+  const handleEditProfile = () => {
+    navigate('/profile-edit');
   };
   
   const handleImageUpload = async (e) => {
@@ -171,7 +175,7 @@ const ProfilePage = () => {
               <button 
                 id="edit-btn" 
                 className={`edit-btn ${userRole === 'farmer' ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white border-0`}
-                onClick={handleCompleteProfile}
+                onClick={handleEditProfile}
               >
                 <span id="edit-button-text">{t('profilePage.edit')}</span>
               </button>

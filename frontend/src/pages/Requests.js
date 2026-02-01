@@ -503,8 +503,7 @@ const Requests = () => {
         <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
           toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
         }`}>
-          {toast.message === 'Request accepted successfully' ? t('Request Accepted Successfully') : t('Request Rejected Successfully')}
-          {toast.message === 'Request rejected successfully' ? t('Request Rejected Successfully') : t('Request Accepted Successfully')} 
+          {toast.message}
         </div>
       )}
     </div>
