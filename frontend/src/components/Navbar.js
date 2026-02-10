@@ -87,15 +87,10 @@ const Navbar = () => {
   const navbarBgColor = token ? theme.primary : '#1f8c4f';
 
   return (
-    <nav className="flex justify-between items-center px-4 md:px-5 text-white shadow-md fixed top-0 w-full h-12 z-50 overflow-visible md:overflow-hidden" style={{backgroundColor: navbarBgColor}}>
+    <nav className="flex justify-between items-center px-4 md:px-5 text-white shadow-md fixed top-0 w-full h-12 z-50 overflow-visible md:overflow-visible" style={{backgroundColor: navbarBgColor}}>
       <div className="flex items-center">
-        <Link to="/" className="text-white no-underline flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center overflow-hidden">
-            <img src={logo} alt="Logo" className="h-6 w-6 object-contain" />
-          </div>
-          <span className="text-lg md:text-xl font-semibold leading-none">
-            {t('common.appName')}
-          </span>
+        <Link to="/" className="text-white no-underline">
+          <h2 className="m-0 text-lg md:text-xl">{t('common.appName')}</h2>
         </Link>
       </div>
       
@@ -105,7 +100,7 @@ const Navbar = () => {
         <span className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 relative origin-left ${menuActive ? '-rotate-45 -translate-y-2.5' : ''}`}></span>
       </button>
       
-      <ul className={`flex list-none m-0 p-0 gap-4 items-center flex-wrap fixed left-0 top-0 h-screen w-full bg-green-800 flex-col items-center justify-center gap-8 z-40 transform ${menuActive ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:top-0 md:translate-x-0 md:flex-row md:h-12 md:w-auto md:bg-transparent md:pr-10 md:flex-nowrap`} style={{backgroundColor: menuActive ? 'rgba(31, 140, 79, 0.9)' : navbarBgColor}}>
+      <ul className={`flex list-none m-0 p-0 gap-4 items-center flex-wrap fixed left-0 top-0 h-screen w-full bg-green-800 flex-col items-center justify-center gap-8 z-40 transform ${menuActive ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex-row md:h-auto md:w-auto md:bg-transparent md:pr-10 md:gap-4 md:flex-wrap`}>
         <li className="flex items-center gap-1"><Link to="/" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaHome size={16} /> {t('navbar.home')}</Link></li>
         {token && (
           <>

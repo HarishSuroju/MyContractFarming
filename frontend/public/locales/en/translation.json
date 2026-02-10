@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Assured contract farming",
+    "appName": "ACF",
     "home": "Home",
     "dashboard": "Dashboard",
     "userDirectory": "Members",
@@ -11,7 +11,7 @@
     "profile": "Profile"
   },
   "landingPage": {
-    "title": "Assured Contract Farming",
+    "title": "ACF",
     "subtitle": "Connecting farmers and contractors through secure smart contracts for fair pricing and reliable partnerships.",
     "signUpButton": "Sign Up",
     "loginButton": "Login",
