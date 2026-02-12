@@ -277,20 +277,30 @@ const UsersDirectory = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/40 pt-32 pb-16">
         <div className="text-xl text-gray-600">{t('userDirectory.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 pb-8">
+    <div className="min-h-screen bg-gray-50 pt-32 pb-8">
       <div className="max-w-6xl mx-auto px-6">
         {/* Page Title */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">{t('userDirectory.title')}</h1>
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-gray-900">
+            {t('userDirectory.title')}
+          </h1>
+          <p className="text-gray-500 mt-2">
+            Discover farmers and contractors for secure partnerships.
+          </p>
+          <div className="w-24 h-1 bg-green-600 rounded-full mt-4"></div>
+        </div>
+
         
         {/* Search and Filters */}
-        <div className="sticky top-16 bg-gray-50 z-10 pb-6 mb-6">
+        <div className="sticky top-0 bg-white/80 backdrop-blur-lg border border-gray-200 rounded-2xl p-6 mb-10 shadow-sm">
           <input
             type="text"
             value={searchTerm}
@@ -342,114 +352,105 @@ const UsersDirectory = () => {
         </div>
         
         {/* User Cards Container */}
-        {filteredUsers.length === 0 ? (
-          <div className="text-center py-16 text-lg text-gray-500">
-            {t('userDirectory.noUsersFound')}
+{filteredUsers.length === 0 ? (
+  <div className="text-center py-20">
+    <div className="text-lg text-gray-500">
+      {t('userDirectory.noUsersFound')}
+    </div>
+  </div>
+) : (
+  <div className="space-y-8">
+    {filteredUsers.map(user => {
+      const roleClass = user.role.toLowerCase();
+      const initials = getInitials(user.name);
+
+      return (
+        <div
+          key={user.id}
+          className={`relative z-0 flex rounded-2xl p-6 transition-all duration-300 cursor-pointer border border-gray-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-xl hover:z-20`}
+        >
+          {/* Avatar */}
+          <div
+            className={`w-24 h-24 rounded-2xl flex-shrink-0 flex items-center justify-center
+            text-3xl font-bold mr-6 shadow-md ${
+              roleClass === 'farmer'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-blue-100 text-blue-700'
+            } overflow-hidden`}
+          >
+            {user.profilePhoto ? (
+              <img
+                src={user.profilePhoto}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span>{initials}</span>
+            )}
           </div>
-        ) : (
-          <div className="space-y-5">
-            {filteredUsers.map(user => {
-              const roleClass = user.role.toLowerCase();
-              const initials = getInitials(user.name);
-              
-              return (
-                <div
-                  key={user.id}
-                  className={`flex rounded-2xl p-5 transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-1 ${
+
+          {/* Content */}
+          <div className="flex-1 flex flex-col justify-between mt-5 md:mt-0">
+            
+            {/* Header */}
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {user.name}
+                </div>
+
+                <span
+                  className={`text-xs font-semibold px-3 py-1 rounded-full ${
                     roleClass === 'farmer'
-                      ? 'bg-gradient-to-br from-green-50 to-green-100 hover:border-green-500 hover:shadow-lg hover:shadow-green-200'
-                      : 'bg-gradient-to-br from-blue-50 to-blue-100 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-200'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-blue-100 text-blue-700'
                   }`}
                 >
-                  <div
-                    className={`w-24 h-24 rounded-xl flex-shrink-0 flex items-center justify-center text-3xl font-bold mr-5 shadow-lg ${
-                      roleClass === 'farmer'
-                        ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-green-300'
-                        : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-300'
-                    } overflow-hidden`}
-                  >
-                    {user.profilePhoto ? (
-                      <img 
-                        src={user.profilePhoto} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>{initials}</span>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900 mb-1">{user.name}</div>
-                        <span
-                          className={`text-xs font-semibold px-3 py-1 rounded-full inline-block ${
-                            roleClass === 'farmer'
-                              ? 'bg-green-500 text-white'
-                              : 'bg-blue-500 text-white'
-                          }`}
-                        >
-                          {user.role === 'Farmer' ? t('userDirectory.farmer') : t('userDirectory.contractor')}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                      {user.role === 'Farmer' ? (
-                        <>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.location')}:</span> {user.location}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.crops')}:</span> {user.crops.join(', ')}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.season')}:</span> {user.season}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.experience')}:</span> {user.experience}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.landSize')}:</span> {user.landSize}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.company')}:</span> {user.company}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.location')}:</span> {user.location}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.specialization')}:</span> {user.specialization}
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-semibold text-gray-600 opacity-70">{t('userDirectory.projects')}:</span> {user.projects}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    
-                    <button
-                      onClick={() => viewMore(user.id)}
-                      className="self-start px-6 py-2.5 rounded-lg font-semibold text-sm border-2 transition-all duration-200 hover:scale-105 text-white"
-                      style={{
-                        backgroundColor: roleClass === 'farmer' ? '#0db60c' : '#1661db',
-                        borderColor: roleClass === 'farmer' ? '#0db60c' : '#1661db'
-                      }}
-                      onMouseEnter={(e) => { e.target.style.opacity = '0.8'; }}
-                      onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
-                    >
-                      {t('userDirectory.viewProfile')}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                  {user.role === 'Farmer'
+                    ? t('userDirectory.farmer')
+                    : t('userDirectory.contractor')}
+                </span>
+              </div>
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5 text-sm text-gray-700">
+              {user.role === 'Farmer' ? (
+                <>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.location')}:</span> {user.location}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.crops')}:</span> {user.crops.join(', ')}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.season')}:</span> {user.season}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.experience')}:</span> {user.experience}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.landSize')}:</span> {user.landSize}</div>
+                </>
+              ) : (
+                <>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.company')}:</span> {user.company}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.location')}:</span> {user.location}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.specialization')}:</span> {user.specialization}</div>
+                  <div><span className="font-medium text-gray-500">{t('userDirectory.projects')}:</span> {user.projects}</div>
+                </>
+              )}
+            </div>
+
+            {/* Button */}
+            <button
+              onClick={() => viewMore(user.id)}
+              className={`self-start px-5 py-2 rounded-lg font-semibold text-sm transition-all duration-200
+              ${
+                roleClass === 'farmer'
+                  ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+              }`}
+            >
+              {t('userDirectory.viewProfile')}
+            </button>
           </div>
-        )}
+        </div>
+      );
+    })}
+  </div>
+)}
       </div>
     </div>
   );

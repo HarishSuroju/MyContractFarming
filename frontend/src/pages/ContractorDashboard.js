@@ -119,100 +119,92 @@ const ContractorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen pt-16 px-4 pb-8" style={{background: theme.gradient}}>
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <header className="bg-white shadow-lg rounded-lg p-6 mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold" style={{color: theme.primary}}>Contractor Dashboard</h1>
-              <p className="text-gray-600 mt-2">Manage your contracts, farmers, and business operations.</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200"
-            >
-              Logout
-            </button>
-          </div>
-        </header>
+  <div className="min-h-screen bg-gray-50 pt-24 pb-10 px-6">
+    <div className="max-w-7xl mx-auto">
 
-        {/* Error message */}
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-8">
-            {error}
-          </div>
-        )}
-
-        {/* Quick Stats */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div 
-            onClick={handleViewContracts}
-            className="bg-white shadow-md rounded-lg p-6 text-center hover:shadow-lg transition-all cursor-pointer"
-            style={{borderTop: theme.border}}
-          >
-            <div className="text-4xl mb-2">🚜</div>
-            <h3 className="text-xl font-semibold" style={{color: theme.primary}}>Active Contracts</h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {loading ? '...' : activeContracts}
-            </p>
-          </div>
-          <div 
-            onClick={handleViewInvestments}
-            className="bg-white shadow-md rounded-lg p-6 text-center hover:shadow-lg transition-all cursor-pointer"
-            style={{borderTop: theme.border}}
-          >
-            <div className="text-4xl mb-2">💰</div>
-            <h3 className="text-xl font-semibold" style={{color: theme.primary}}>Total Investments</h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {loading ? '...' : `$${totalInvestments.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-            </p>
-          </div>
-          <div 
-            onClick={handleViewNotifications}
-            className="bg-white shadow-md rounded-lg p-6 text-center hover:shadow-lg transition-all cursor-pointer"
-            style={{borderTop: theme.border}}
-          >
-            <div className="text-4xl mb-2">🔔</div>
-            <h3 className="text-xl font-semibold" style={{color: theme.primary}}>Notifications</h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {loading ? '...' : unreadNotifications}
-            </p>
-          </div>
-        </section>
-
-        {/* Actions */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          <div
-            className="bg-white shadow-lg rounded-xl p-8 hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-300 cursor-pointer border-2"
-            onClick={handleViewContracts}
-            style={{borderColor: theme.primary}}
-          >
-            <div className="text-6xl mb-4 group-hover:animate-pulse">📝</div>
-            <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-900" style={{color: theme.primary}}>My Contracts</h3>
-            <p className="text-gray-600 group-hover:text-gray-800">View and manage your active contracts.</p>
-            <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{color: theme.primary}}>→ View Now</div>
-          </div>
-          <div
-            className="bg-white shadow-lg rounded-xl p-8 hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-300 cursor-pointer border-2"
-            onClick={handleViewProfile}
-            style={{borderColor: theme.primary}}
-          >
-            <div className="text-6xl mb-4 group-hover:rotate-12 transition-transform duration-300">🏢</div>
-            <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-900" style={{color: theme.primary}}>My Profile</h3>
-            <p className="text-gray-600 group-hover:text-gray-800">Update your company details and preferences.</p>
-            <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{color: theme.primary}}>→ Edit Profile</div>
-          </div>
-        </section>
-
-        {/* Connection Requests Preview */}
-        <section className="mt-8">
-          <ConnectionRequestsPreview />
-        </section>
+      {/* Header */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Contractor Dashboard
+        </h1>
+        <p className="text-gray-500 mt-2">
+          Manage your contracts and investments.
+        </p>
       </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+        <div
+          onClick={handleViewContracts}
+          className="bg-white rounded-2xl p-6 shadow-sm border hover:shadow-md transition cursor-pointer"
+        >
+          <p className="text-sm text-gray-500">Active Contracts</p>
+          <h2 className="text-3xl font-bold mt-2 text-gray-900">
+            {loading ? "..." : activeContracts}
+          </h2>
+        </div>
+
+        <div
+          onClick={handleViewInvestments}
+          className="bg-white rounded-2xl p-6 shadow-sm border hover:shadow-md transition cursor-pointer"
+        >
+          <p className="text-sm text-gray-500">Total Investments</p>
+          <h2 className="text-3xl font-bold mt-2 text-gray-900">
+            {loading ? "..." : `$${totalInvestments.toLocaleString()}`}
+          </h2>
+        </div>
+
+        <div
+          onClick={handleViewNotifications}
+          className="bg-white rounded-2xl p-6 shadow-sm border hover:shadow-md transition cursor-pointer"
+        >
+          <p className="text-sm text-gray-500">Notifications</p>
+          <h2 className="text-3xl font-bold mt-2 text-gray-900">
+            {loading ? "..." : unreadNotifications}
+          </h2>
+        </div>
+
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div
+          onClick={handleViewContracts}
+          className="bg-white rounded-2xl p-8 shadow-sm border hover:shadow-lg hover:-translate-y-1 transition cursor-pointer"
+        >
+          <h3 className="text-xl font-semibold text-gray-900">
+            My Contracts
+          </h3>
+          <p className="text-gray-500 mt-2">
+            View and manage active agreements.
+          </p>
+        </div>
+
+        <div
+          onClick={handleViewProfile}
+          className="bg-white rounded-2xl p-8 shadow-sm border hover:shadow-lg hover:-translate-y-1 transition cursor-pointer"
+        >
+          <h3 className="text-xl font-semibold text-gray-900">
+            My Profile
+          </h3>
+          <p className="text-gray-500 mt-2">
+            Update your company information.
+          </p>
+        </div>
+
+      </div>
+
+      {/* Connection Preview */}
+      <div className="mt-10">
+        <ConnectionRequestsPreview />
+      </div>
+
     </div>
-  );
+  </div>
+);
+
 };
 
 export default ContractorDashboard;

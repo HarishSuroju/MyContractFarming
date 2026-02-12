@@ -219,7 +219,7 @@ const NotificationBell = () => {
         aria-label={t('notifications.bellIcon')}
       >
         <svg
-          className="w-6 h-6 text-white"
+          className="w-6 h-6 text-gray-900"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

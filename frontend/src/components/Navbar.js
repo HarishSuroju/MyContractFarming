@@ -2,20 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
-import { getThemeByRole } from '../utils/colorTheme';
 import NotificationBell from './NotificationBell';
-import { FaHome, FaTachometerAlt, FaUserFriends, FaUserPlus, FaSignInAlt, FaSignOutAlt, FaUser, FaBell, FaCogs, FaQuestionCircle, FaRobot } from 'react-icons/fa';
-import logo from '../assets/Photos/Logo.png';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('userRole');
-  const theme = getThemeByRole(userRole);
+
   const [user, setUser] = useState(null);
-  // const [loading, setLoading] = useState(true); // Commented out as it's not currently used
   const [menuActive, setMenuActive] = useState(false);
 
   useEffect(() => {
@@ -25,14 +22,11 @@ const Navbar = () => {
           const response = await authAPI.getProfile();
           setUser(response.data.data.user);
         } catch (error) {
-          // Only log errors that aren't 403/404 from profile not being complete
           if (error.response?.status !== 403 && error.response?.status !== 404) {
             console.error('Failed to fetch user profile:', error);
           }
-          // Don't set user if profile fetch fails (profile may not be complete yet)
         }
       }
-      // setLoading(false); // Commented out as it's not currently used
     };
 
     fetchUserProfile();
@@ -43,141 +37,189 @@ const Navbar = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('profileComplete');
     localStorage.removeItem('userId');
-    setUser(null);
     navigate('/');
   };
 
   const getUserInitials = (name) => {
     if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
-  const toggleMenu = () => {
-    setMenuActive(!menuActive);
-  };
-
-  const closeMenu = () => {
-    setMenuActive(false);
-  };
-
-  const handleProfileClick = () => {
-    closeMenu();
-    navigate('/profile');
-  };
-  
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
 
-  // Helper function to determine if a link is active
-  const isActiveLink = (path) => {
-    // For exact matches
-    if (path === '/') {
-      return location.pathname === '/';
-    }
-    // For dashboard routes
-    if (path.includes('dashboard')) {
-      return location.pathname.includes('dashboard');
-    }
-    // For other routes, check if current path starts with the link path
-    return location.pathname.startsWith(path);
-  };
+  /* ===============================
+     Active State Helpers
+  =============================== */
 
-  // Dynamic navbar background color
-  const navbarBgColor = token ? theme.primary : '#1f8c4f';
+  const isActive = (path) => location.pathname === path;
+
+  const isHomeActive = () =>
+    location.pathname === '/' || location.pathname === '/app-home';
+
+  const isDashboardActive = () =>
+    location.pathname.includes('dashboard') ||
+    location.pathname === '/admin';
+
+  /* ===============================
+     Render
+  =============================== */
 
   return (
-    <nav className="flex justify-between items-center px-4 md:px-5 text-white shadow-md fixed top-0 w-full h-12 z-50 overflow-visible md:overflow-visible" style={{backgroundColor: navbarBgColor}}>
-      <div className="flex items-center">
-        <Link to="/" className="text-white no-underline">
-          <h2 className="m-0 text-lg md:text-xl">{t('common.appName')}</h2>
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200 z-50">
+      <div className="px-6 h-16 flex items-center justify-between">
+
+        {/* Logo */}
+        <Link
+          to={token ? "/app-home" : "/"}
+          className="text-2xl font-bold text-green-700 hover:opacity-80 transition"
+        >
+          {t('common.appName')}
         </Link>
-      </div>
-      
-      <button className="md:hidden flex flex-col justify-around w-8 h-8 bg-transparent border-none cursor-pointer p-0 z-10 ml-2" onClick={toggleMenu}>
-        <span className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 relative origin-left ${menuActive ? 'rotate-45 translate-y-2.5' : ''}`}></span>
-        <span className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 relative origin-left ${menuActive ? 'opacity-0' : ''}`}></span>
-        <span className={`w-full h-0.5 bg-white rounded-full transition-all duration-300 relative origin-left ${menuActive ? '-rotate-45 -translate-y-2.5' : ''}`}></span>
-      </button>
-      
-      <ul className={`flex list-none m-0 p-0 gap-4 items-center flex-wrap fixed left-0 top-0 h-screen w-full bg-green-800 flex-col items-center justify-center gap-8 z-40 transform ${menuActive ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex-row md:h-auto md:w-auto md:bg-transparent md:pr-10 md:gap-4 md:flex-wrap`}>
-        <li className="flex items-center gap-1"><Link to="/" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaHome size={16} /> {t('navbar.home')}</Link></li>
-        {token && (
-          <>
-            <li className="flex items-center gap-1"><Link to={userRole === 'farmer' ? '/farmer-dashboard' : '/contractor-dashboard'} onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('dashboard') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaTachometerAlt size={16} /> {t('navbar.dashboard')}</Link></li>
-            <li className="flex items-center gap-1"><Link to="/connection-requests" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/connection-requests') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaUserFriends size={16} /> {t('navbar.connectionRequests')}</Link></li>
-          </>
-        )}
-        <li className="flex items-center gap-1"><Link to="/users-directory" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/users-directory') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaUserPlus size={16} /> {t('navbar.userDirectory')}</Link></li>
-        {userRole === 'admin' && (
-          <li className="flex items-center gap-1"><Link to="/admin" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/admin') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaCogs size={16} /> {t('navbar.adminDashboard')}</Link></li>
-        )}
-        <li className="flex items-center gap-1"><Link to="/help" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/help') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaQuestionCircle size={16} /> {t('navbar.help')}</Link></li>
-        <li className="flex items-center gap-1"><Link to="/chatbot" onClick={closeMenu} className={`no-underline font-medium transition-colors duration-300 whitespace-nowrap flex items-center gap-1 ${isActiveLink('/chatbot') ? 'text-yellow-300 font-bold underline' : 'text-white hover:text-white'}`}><FaRobot size={16} /> Chatbot</Link></li>
-        <li className="relative inline-block group">
-          <div className="flex items-center">
-            <select 
-              className="border-none focus:outline-none rounded px-2 py-1"
-              onChange={(e) => changeLanguage(e.target.value)}
-              value={i18n.language}
-              style={{backgroundColor: theme.primary, color: '#fff'}}
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-6">
+
+          {/* Home */}
+          <Link
+            to={token ? "/app-home" : "/"}
+            className={`px-3 py-1 rounded-lg font-medium transition ${
+              isHomeActive()
+                ? 'bg-green-100 text-green-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Home
+          </Link>
+
+          {/* Dashboard */}
+          {token && (
+            <Link
+              to={
+                userRole === 'farmer'
+                  ? '/farmer-dashboard'
+                  : userRole === 'contractor'
+                  ? '/contractor-dashboard'
+                  : '/admin'
+              }
+              className={`px-3 py-1 rounded-lg font-medium transition ${
+                isDashboardActive()
+                  ? 'bg-green-100 text-green-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <option value="en">EN</option>
-              <option value="hi">हिंदी</option>
-              <option value="te">తెలుగు</option>
-              <option value="ta">தமிழ்</option>
-              <option value="kn">ಕನ್ನಡ</option>
-              <option value="ml">മലയാളം</option>
-            </select>
-          </div>
-        </li>
-        
-        {!token ? (
-          <li className="flex gap-2">
-            <Link to="/login" onClick={closeMenu}><button className="bg-transparent border text-white px-3 py-2 rounded cursor-pointer font-medium transition-all duration-300 whitespace-nowrap hover:bg-white hover:text-gray-800 flex items-center gap-1 text-sm" style={{borderColor: '#fff'}}><FaSignInAlt size={14} /> {t('navbar.login')}</button></Link>
-            <Link to="/signup" onClick={closeMenu}><button className="border px-3 py-2 rounded cursor-pointer font-medium transition-all duration-300 ml-2 whitespace-nowrap flex items-center gap-1 text-sm" style={{backgroundColor: theme.primary, color: '#000', borderColor: theme.primary}}><FaUserPlus size={14} /> {t('navbar.signUp')}</button></Link>
-          </li>
-        ) : (
-          <>
-            <li className="hidden md:block">
+              Dashboard
+            </Link>
+          )}
+
+          {/* Requests */}
+          {token && (
+            <Link
+              to="/connection-requests"
+              className={`px-3 py-1 rounded-lg font-medium transition ${
+                isActive('/connection-requests')
+                  ? 'bg-green-100 text-green-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Requests
+            </Link>
+          )}
+
+          {/* Directory */}
+          <Link
+            to="/users-directory"
+            className={`px-3 py-1 rounded-lg font-medium transition ${
+              isActive('/users-directory')
+                ? 'bg-green-100 text-green-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Directory
+          </Link>
+
+          {/* Help */}
+          <Link
+            to="/help"
+            className={`px-3 py-1 rounded-lg font-medium transition ${
+              isActive('/help')
+                ? 'bg-green-100 text-green-700'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            Help
+          </Link>
+
+          {/* Language */}
+          <select
+            onChange={(e) => changeLanguage(e.target.value)}
+            value={i18n.language}
+            className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="en">EN</option>
+            <option value="hi">हिंदी</option>
+            <option value="te">తెలుగు</option>
+            <option value="ta">தமிழ்</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          {/* Auth Section */}
+          {!token ? (
+            <>
+              <Link
+                to="/login"
+                className="text-gray-700 hover:text-green-600 font-medium transition"
+              >
+                Login
+              </Link>
+
+              <Link
+                to="/signup"
+                className="bg-green-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-green-700 transition shadow-sm"
+              >
+                Get Started
+              </Link>
+            </>
+          ) : (
+            <>
               <NotificationBell />
-            </li>
-            <li className="hidden md:relative md:inline-block md:group">
-              <div className="cursor-pointer flex items-center" onClick={handleProfileClick}>
-                {user && user.name ? (
-                  <div className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-base border-2 border-white cursor-pointer overflow-hidden" style={{backgroundColor: theme.primary}}>
-                    {user.profilePhoto ? (
-                      <img 
-                        src={user.profilePhoto} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>{getUserInitials(user.name)}</span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-base border-2 border-white cursor-pointer" style={{backgroundColor: theme.primary}}>
-                    U
-                  </div>
-                )}
+
+              {/* Profile */}
+              <div
+                onClick={() => navigate('/profile')}
+                className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-semibold cursor-pointer hover:bg-green-700 transition"
+              >
+                {user && user.name
+                  ? getUserInitials(user.name)
+                  : 'U'}
               </div>
-              <div className="absolute top-full right-0 bg-white text-gray-800 rounded shadow-lg w-50 p-4 hidden group-hover:block z-50">
-                <div className="pb-4 border-b border-gray-300 mb-4">
-                  {user && (
-                    <>
-                      <div className="font-bold mb-1">{user.name}</div>
-                      <div className="text-xs text-gray-600">{user.email}</div>
-                    </>
-                  )}
-                </div>
-                <Link to="/profile" className={`block no-underline py-2 mb-2 rounded transition-colors duration-300 flex items-center gap-1 ${isActiveLink('/profile') ? 'bg-gray-200 font-bold' : 'hover:bg-gray-100'}`} style={{color: theme.primary}} onClick={closeMenu}><FaUser size={16} /> {t('navbar.profile')}</Link>
-                <button className="bg-red-500 text-white border-none py-2 rounded cursor-pointer w-full font-medium transition-colors duration-300 hover:bg-red-700 flex items-center justify-center gap-1" onClick={() => { handleLogout(); closeMenu(); }}><FaSignOutAlt size={16} /> {t('navbar.logout')}</button>
-              </div>
-            </li>
-          </>
-        )}
-      </ul>
+
+              <button
+                onClick={handleLogout}
+                className="text-red-600 font-medium hover:text-red-700 transition"
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Toggle */}
+        <button
+          className="md:hidden text-gray-700 text-xl"
+          onClick={() => setMenuActive(!menuActive)}
+        >
+          ☰
+        </button>
+
+      </div>
     </nav>
   );
 };

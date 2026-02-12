@@ -104,170 +104,80 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="app-canvas">
-      <style>{expandedStyles}</style>
-      
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="chat-overlay"
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+
+    <motion.div
+      ref={chatContainerRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      onClick={(e) => e.stopPropagation()}
+      className="w-full max-w-4xl h-[90vh] bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+    >
+
+      {/* Header */}
+      <div className="px-6 py-4 bg-gradient-to-r from-green-700 to-green-800 text-white flex items-center gap-3">
+        <div className="w-3 h-3 bg-green-300 rounded-full"></div>
+        <h1 className="text-lg font-semibold">
+          🌾 ACF Farming Assistant
+        </h1>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-50 space-y-4">
+        <AnimatePresence>
+          {messages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: msg.sender === "user" ? 20 : -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className={`flex ${
+                msg.sender === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`px-4 py-3 rounded-2xl max-w-[75%] text-sm shadow-md ${
+                  msg.sender === "user"
+                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white rounded-br-md"
+                    : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
+                }`}
+              >
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {loading && (
+          <div className="text-sm text-gray-500">
+            Assistant is analyzing...
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <form
+        onSubmit={sendMessage}
+        className="p-4 bg-white border-t border-gray-200 flex gap-3"
       >
-        <motion.div 
-          ref={chatContainerRef}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          className="glass-container"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask anything about your crops..."
+          className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+        />
+        <button
+          type="submit"
+          className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-xl hover:opacity-90 transition"
         >
-          <div className="chat-header">
-            <div className="status-dot"></div>
-            <h1>🌾 ACF Farming Assistant</h1>
-          </div>
-
-          <div className="chat-body">
-            <AnimatePresence>
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: msg.sender === "user" ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={`message-wrapper ${msg.sender}`}
-                >
-                  <div className="bubble">
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {loading && <div className="typing">Assistant is analyzing...</div>}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <form className="input-bar" onSubmit={sendMessage}>
-            <input 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
-              placeholder="Ask anything about your crops..." 
-            />
-            <button type="submit">Send</button>
-          </form>
-        </motion.div>
-      </motion.div>
-    </div>
-  );
+          Send
+        </button>
+      </form>
+    </motion.div>
+  </div>
+);
 };
-
-const expandedStyles = `
-  .app-canvas {
-    min-height: 100vh;
-    background: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  .chat-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .glass-container {
-    width: 100%;
-    max-width: 900px; 
-    height: 90vh; 
-    background: #ffffff;
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-  }
-
-  .chat-header {
-    padding: 25px;
-    background: #2e7d32;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-
-  .status-dot { width: 12px; height: 12px; background: #81c784; border-radius: 50%; }
-  .chat-header h1 { font-size: 1.4rem; margin: 0; }
-
-  .chat-body { 
-    flex: 1; 
-    padding: 30px; 
-    overflow-y: auto; 
-    background: #f8fafc;
-  }
-
-  .message-wrapper { display: flex; margin-bottom: 20px; width: 100%; }
-  .message-wrapper.user { justify-content: flex-end; }
-  .message-wrapper.bot { justify-content: flex-start; }
-
-  .bubble {
-    padding: 15px 20px;
-    border-radius: 15px;
-    max-width: 75%; 
-    font-size: 1rem;
-    line-height: 1.6;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  }
-
-  .user .bubble { background: #2e7d32; color: white; }
-  .bot .bubble { background: white; color: #1e293b; border: 1px solid #e2e8f0; }
-
-  /* Structured Content Scaling */
-  .bubble table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-  .bubble th, .bubble td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; }
-  .bubble th { background: #f1f5f9; }
-
-  .input-bar {
-    padding: 25px;
-    background: white;
-    display: flex;
-    gap: 15px;
-    border-top: 1px solid #e2e8f0;
-  }
-
-  .input-bar input {
-    flex: 1;
-    padding: 15px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    outline: none;
-    font-size: 1rem;
-  }
-
-  .input-bar button {
-    padding: 0 30px;
-    background: #2e7d32;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  /* Responsive for Mobile */
-  @media (max-width: 768px) {
-    .glass-container { height: 100vh; border-radius: 0; }
-    .app-canvas { padding: 0; }
-    .bubble { max-width: 90%; }
-  }
-`;
 
 export default Chatbot;

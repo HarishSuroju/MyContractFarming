@@ -150,188 +150,182 @@ const ProfilePage = () => {
   const isProfileComplete = !!profile;
 
   return (
-    <div className="min-h-full w-full p-6 bg-gray-50 pt-16">
-      {/* Modal for image upload feedback */}
-      {(uploading) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6">
-            <p>Uploading image...</p>
-          </div>
-        </div>
-      )}
-      <div className="max-w-3xl mx-auto">
-        {/* Page Title */}
-        <h1 id="page-title" className="mb-8" style={{ fontWeight: 700, fontSize: '32px' }}>
-          {t('profilePage.title')}
-        </h1>
-          
-        {/* Account Information Section */}
-        <div className="profile-card rounded-xl p-6 mb-6 bg-white shadow-lg">
-          <div className="section-header">
-            <h2 id="account-section-title" style={{ fontWeight: 700, fontSize: '22px' }}>
-              {t('profilePage.accountInfoTitle')}
-            </h2>
-            {isProfileComplete && (
-              <button 
-                id="edit-btn" 
-                className={`edit-btn ${userRole === 'farmer' ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white border-0`}
-                onClick={handleEditProfile}
-              >
-                <span id="edit-button-text">{t('profilePage.edit')}</span>
-              </button>
-            )}
-          </div>
-          <div>
-            {user && (
-              <>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="relative">
-                    <img 
-                      src={imagePreview || '/api/placeholder/150/150'} 
-                      alt="Profile" 
-                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
-                    />
-                    <label className="absolute bottom-0 right-0 bg-green-500 text-white p-1 rounded-full cursor-pointer hover:bg-green-600">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageUpload}
-                      />
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                      </svg>
-                    </label>
-                  </div>
-                  <div>
-                    <div className="info-row" id="name-row">
-                      <span className="info-label">{t('profilePage.nameLabel')}:</span>
-                      <span className="info-value" id="user-name">{user.name}</span>
-                    </div>
-                    <div className="info-row" id="email-row">
-                      <span className="info-label">{t('profilePage.emailLabel')}:</span>
-                      <span className="info-value" id="user-email">{user.email}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="info-row" id="phone-row">
-                  <span className="info-label">{t('profilePage.phoneLabel')}:</span>
-                  <span className="info-value" id="user-phone">{user.phone}</span>
-                </div>
-                <div className="info-row" id="role-row">
-                  <span className="info-label">{t('profilePage.roleLabel')}:</span>
-                  <span className="info-value" id="user-role">{user.role === 'farmer' ? t('profilePage.farmer') : t('profilePage.contractor')}</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-          
-        {/* Profile Section */}
-        <div className="profile-card rounded-xl p-6 bg-white shadow-lg">
-          <h2 id="farmer-section-title" className="mb-5" style={{ fontWeight: 700, fontSize: '22px' }}>
-            {userRole === 'farmer' ? t('profilePage.farmerProfile') : t('profilePage.contractorProfile')}
-          </h2>
-          <div>
-            {profile ? (
-              userRole === 'farmer' ? (
-                <>
-                  <div className="info-row" id="land-size-row">
-                    <span className="info-label">{t('profilePage.landSizeLabel')}:</span>
-                    <span className="info-value" id="land-size">{profile.landSize}</span>
-                  </div>
-                  <div className="info-row" id="land-location-row">
-                    <span className="info-label">{t('profilePage.landLocationLabel')}:</span>
-                    <span className="info-value" id="land-location">{profile.landLocation}</span>
-                  </div>
-                  <div className="info-row" id="crops-row">
-                    <span className="info-label">{t('profilePage.cropsGrownLabel')}:</span>
-                    <div className="info-value flex flex-wrap gap-2" id="crops-grown">
-                      {Array.isArray(profile.cropsGrown) && profile.cropsGrown.length > 0 ? (
-                        profile.cropsGrown.map((crop, index) => (
-                          <span key={index} className="inline-block bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">
-                            {crop}
-                          </span>
-                        ))
-                      ) : (
-                        <span>{profile.cropsGrown}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="info-row" id="experience-row">
-                    <span className="info-label">{t('profilePage.experienceLabel')}:</span>
-                    <span className="info-value" id="experience">{profile.experience} {t('profilePage.years')}</span>
-                  </div>
-                  <div className="info-row" id="seasons-row">
-                    <span className="info-label">{t('profilePage.preferredSeasonsLabel')}:</span>
-                    <span className="info-value" id="preferred-seasons">{profile.seasons ? profile.seasons.join(', ') : t('profilePage.none')}</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="info-row" id="land-size-row">
-                    <span className="info-label">{t('profilePage.companyNameLabel')}:</span>
-                    <span className="info-value" id="land-size">{profile.companyName}</span>
-                  </div>
-                  <div className="info-row" id="land-location-row">
-                    <span className="info-label">{t('profilePage.companyLocationLabel')}:</span>
-                    <span className="info-value" id="land-location">{profile.companyLocation}</span>
-                  </div>
-                  <div className="info-row" id="crops-row">
-                    <span className="info-label">{t('profilePage.cropDemandLabel')}:</span>
-                    <div className="info-value flex flex-wrap gap-2" id="crops-grown">
-                      {Array.isArray(profile.cropDemand) && profile.cropDemand.length > 0 ? (
-                        profile.cropDemand.map((crop, index) => (
-                          <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
-                            {crop}
-                          </span>
-                        ))
-                      ) : (
-                        <span>{profile.cropDemand}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="info-row" id="experience-row">
-                    <span className="info-label">{t('profilePage.contractPreferencesLabel')}:</span>
-                    <span className="info-value" id="experience">{profile.contractPreferences}</span>
-                  </div>
-                </>
-              )
-            ) : (
-              <>
-                <div className="info-row" id="no-profile-row">
-                  <span className="info-value" id="no-profile-message">{t('profilePage.noProfileMessage')}</span>
-                </div>
-                <div className="form-actions" style={{ marginTop: '1rem' }}>
-                  <button className="submit-button bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg" onClick={handleCompleteProfile}>
-                    {t('profilePage.completeProfile')}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-          
-        {/* Action Buttons */}
-        <div className="action-buttons flex gap-4 mt-8">
-          <button 
-            id="back-btn" 
-            className="action-btn flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold text-base hover:bg-gray-50 transition-all duration-200"
-            onClick={handleBack}
-          >
-            <span id="back-button-text">{t('profilePage.back')}</span>
-          </button>
-          <button 
-            id="logout-btn" 
-            className="action-btn flex-1 py-3 px-4 border border-red-500 bg-red-500 text-white rounded-lg font-semibold text-base hover:bg-red-600 hover:border-red-600 transition-all duration-200"
-            onClick={handleLogout}
-          >
-            <span id="logout-button-text">{t('profilePage.logout')}</span>
-          </button>
+  <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4">
+    
+    {/* Upload Modal */}
+    {uploading && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl px-6 py-4 shadow-xl">
+          <p className="text-gray-700 font-medium">Uploading image...</p>
         </div>
       </div>
+    )}
+
+    <div className="max-w-4xl mx-auto space-y-8">
+
+      {/* Page Title */}
+      <h1 className="text-3xl font-bold text-gray-800">
+        {t('profilePage.title')}
+      </h1>
+
+      {/* ================= ACCOUNT CARD ================= */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">
+            {t('profilePage.accountInfoTitle')}
+          </h2>
+
+          {isProfileComplete && (
+            <button
+              onClick={handleEditProfile}
+              className={`px-4 py-2 rounded-lg text-white font-medium transition ${
+                userRole === 'farmer'
+                  ? 'bg-green-500 hover:bg-green-600'
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+            >
+              {t('profilePage.edit')}
+            </button>
+          )}
+        </div>
+
+        {user && (
+          <>
+            <div className="flex items-center gap-6 mb-6">
+
+              {/* Profile Image */}
+              <div className="relative">
+                <img
+                  src={imagePreview || '/api/placeholder/150/150'}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
+                />
+                <label className="absolute bottom-1 right-1 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                  ✎
+                </label>
+              </div>
+
+              {/* User Info */}
+              <div className="space-y-2">
+                <p><span className="font-semibold text-gray-600">{t('profilePage.nameLabel')}:</span> {user.name}</p>
+                <p><span className="font-semibold text-gray-600">{t('profilePage.emailLabel')}:</span> {user.email}</p>
+                <p><span className="font-semibold text-gray-600">{t('profilePage.phoneLabel')}:</span> {user.phone}</p>
+                <p>
+                  <span className="font-semibold text-gray-600">{t('profilePage.roleLabel')}:</span>{' '}
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    user.role === 'farmer'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {user.role === 'farmer'
+                      ? t('profilePage.farmer')
+                      : t('profilePage.contractor')}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ================= PROFILE DETAILS CARD ================= */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+          {userRole === 'farmer'
+            ? t('profilePage.farmerProfile')
+            : t('profilePage.contractorProfile')}
+        </h2>
+
+        {profile ? (
+          userRole === 'farmer' ? (
+            <div className="grid md:grid-cols-2 gap-6 text-gray-700">
+              <p><span className="font-semibold">{t('profilePage.landSizeLabel')}:</span> {profile.landSize}</p>
+              <p><span className="font-semibold">{t('profilePage.landLocationLabel')}:</span> {profile.landLocation}</p>
+
+              <div className="grid md:grid-cols-2 gap-6 text-gray-700">
+                <p className="font-semibold text-gray-700 mb-2">
+                  {t('profilePage.cropsGrownLabel')}:
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  {profile.cropsGrown?.map((crop, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full font-medium"
+                    >
+                      {crop}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+
+              <p><span className="font-semibold">{t('profilePage.experienceLabel')}:</span> {profile.experience} {t('profilePage.years')}</p>
+              <p><span className="font-semibold">{t('profilePage.preferredSeasonsLabel')}:</span> {profile.seasons?.join(', ')}</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6 text-gray-700">
+              <p><span className="font-semibold">{t('profilePage.companyNameLabel')}:</span> {profile.companyName}</p>
+              <p><span className="font-semibold">{t('profilePage.companyLocationLabel')}:</span> {profile.companyLocation}</p>
+
+              <div className="md:col-span-2">
+                <span className="font-semibold">{t('profilePage.cropDemandLabel')}:</span>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {profile.cropDemand?.map((crop, i) => (
+                    <span key={i} className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full">
+                      {crop}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <p className="md:col-span-2">
+                <span className="font-semibold">{t('profilePage.contractPreferencesLabel')}:</span> {profile.contractPreferences}
+              </p>
+            </div>
+          )
+        ) : (
+          <div className="text-center py-6">
+            <p className="text-gray-500 mb-4">{t('profilePage.noProfileMessage')}</p>
+            <button
+              onClick={handleCompleteProfile}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition"
+            >
+              {t('profilePage.completeProfile')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ================= ACTION BUTTONS ================= */}
+      <div className="flex gap-4">
+        <button
+          onClick={handleBack}
+          className="flex-1 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 transition"
+        >
+          {t('profilePage.back')}
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="flex-1 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition"
+        >
+          {t('profilePage.logout')}
+        </button>
+      </div>
+
     </div>
-  );
+  </div>
+);
+
 };
 
 export default ProfilePage;
