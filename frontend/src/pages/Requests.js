@@ -19,7 +19,9 @@ const Requests = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
-  
+  const [processing, setProcessing] = useState({});
+
+
   const highlightedRef = useRef(null);
 
   useEffect(() => {
@@ -92,75 +94,76 @@ const Requests = () => {
   };
 
   const confirmAccept = async () => {
-    if (!selectedRequest || !showAcceptModal) return;
+  if (!selectedRequest) return;
 
-    try {
-      // Disable buttons and show loading
-      const acceptBtn = document.getElementById(`accept-${selectedRequest._id}`);
-      const rejectBtn = document.getElementById(`reject-${selectedRequest._id}`);
-      if (acceptBtn) acceptBtn.disabled = true;
-      if (rejectBtn) rejectBtn.disabled = true;
+  try {
+    setProcessing(prev => ({ ...prev, [selectedRequest._id]: true }));
 
-      // Call API to update status
-      await connectionAPI.updateConnectionRequestStatus(selectedRequest._id, 'accepted');
+    await connectionAPI.updateConnectionRequestStatus(
+      selectedRequest._id,
+      'accepted'
+    );
 
-      // Remove request from pending list
-      setIncomingRequests(prev => prev.filter(req => req._id !== selectedRequest._id));
+    setIncomingRequests(prev =>
+      prev.filter(req => req._id !== selectedRequest._id)
+    );
 
-      // Show success toast
-      showToast(t('connection.acceptSuccess') || 'Request accepted successfully', 'success');
+    showToast(
+      t('connection.acceptSuccess') || 'Request accepted successfully',
+      'success'
+    );
 
-      // Close modal
-      setShowAcceptModal(false);
-      setSelectedRequest(null);
-      
-      // Unlock next actions on UI (e.g., start audio/video call, create agreement)
-      console.log('Request accepted, next actions unlocked for this connection');
-    } catch (error) {
-      console.error('Error accepting request:', error);
-      showToast('Failed to accept request', 'error');
-      
-      // Re-enable buttons
-      const acceptBtn = document.getElementById(`accept-${selectedRequest._id}`);
-      const rejectBtn = document.getElementById(`reject-${selectedRequest._id}`);
-      if (acceptBtn) acceptBtn.disabled = false;
-      if (rejectBtn) rejectBtn.disabled = false;
-    }
-  };
+    setShowAcceptModal(false);
+    setSelectedRequest(null);
+
+  } catch (error) {
+    console.error('Error accepting request:', error);
+    showToast('Failed to accept request', 'error');
+  } finally {
+    setProcessing(prev => {
+      const copy = { ...prev };
+      delete copy[selectedRequest._id];
+      return copy;
+    });
+  }
+};
+
 
   const confirmReject = async () => {
-    if (!selectedRequest || !showRejectModal) return;
+  if (!selectedRequest) return;
 
-    try {
-      // Disable buttons
-      const acceptBtn = document.getElementById(`accept-${selectedRequest._id}`);
-      const rejectBtn = document.getElementById(`reject-${selectedRequest._id}`);
-      if (acceptBtn) acceptBtn.disabled = true;
-      if (rejectBtn) rejectBtn.disabled = true;
+  try {
+    setProcessing(prev => ({ ...prev, [selectedRequest._id]: true }));
 
-      // Call API to update status
-      await connectionAPI.updateConnectionRequestStatus(selectedRequest._id, 'rejected');
+    await connectionAPI.updateConnectionRequestStatus(
+      selectedRequest._id,
+      'rejected'
+    );
 
-      // Remove request from pending list
-      setIncomingRequests(prev => prev.filter(req => req._id !== selectedRequest._id));
+    setIncomingRequests(prev =>
+      prev.filter(req => req._id !== selectedRequest._id)
+    );
 
-      // Show rejection toast
-      showToast(t('connection.rejectSuccess') || 'Request rejected successfully', 'success');
+    showToast(
+      t('connection.rejectSuccess') || 'Request rejected successfully',
+      'success'
+    );
 
-      // Close modal
-      setShowRejectModal(false);
-      setSelectedRequest(null);
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-      showToast('Failed to reject request', 'error');
-      
-      // Re-enable buttons
-      const acceptBtn = document.getElementById(`accept-${selectedRequest._id}`);
-      const rejectBtn = document.getElementById(`reject-${selectedRequest._id}`);
-      if (acceptBtn) acceptBtn.disabled = false;
-      if (rejectBtn) rejectBtn.disabled = false;
-    }
-  };
+    setShowRejectModal(false);
+    setSelectedRequest(null);
+
+  } catch (error) {
+    console.error('Error rejecting request:', error);
+    showToast('Failed to reject request', 'error');
+  } finally {
+    setProcessing(prev => {
+      const copy = { ...prev };
+      delete copy[selectedRequest._id];
+      return copy;
+    });
+  }
+};
+
 
   const handleCancelRequest = async (request) => {
     try {
@@ -224,7 +227,7 @@ const Requests = () => {
             : request.status === 'accepted'
               ? 'border-green-200 bg-green-50 hover:bg-green-100'
               : 'border-red-200 bg-red-50 hover:bg-red-100'
-        } transition-all duration-300`}
+        } transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
       >
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="flex-1" onClick={() => {
@@ -316,7 +319,8 @@ const Requests = () => {
                     e.stopPropagation(); // Prevent triggering the card click
                     handleAcceptRequest(request);
                   }}
-                  disabled={loading}
+                  disabled={!!processing[request._id]}
+
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
                 >
                   {t('connection.accept')}
@@ -327,7 +331,8 @@ const Requests = () => {
                     e.stopPropagation(); // Prevent triggering the card click
                     handleRejectRequest(request);
                   }}
-                  disabled={loading}
+                  disabled={!!processing[request._id]}
+
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium min-w-[80px]"
                 >
                   {t('connection.reject')}
@@ -357,7 +362,7 @@ const Requests = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 pb-8">
+    <div className="min-h-screen bg-gray-50 pt-28 pb-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Header */}
