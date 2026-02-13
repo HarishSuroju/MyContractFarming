@@ -9,8 +9,11 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
-router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);
+router.post('/verify-otp', authController.verifyOTP);
+router.post('/send-otp', sendOTP);
+router.post('/verify-otp', verifyOTP);
+
 
 // Protected routes
 router.get('/profile', authenticateToken, getProfile);

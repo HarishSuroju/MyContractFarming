@@ -56,30 +56,40 @@ const userSchema = new mongoose.Schema({
     enum: ['farmer', 'contractor', 'admin'],
     required: true
   },
+
+  // 🔐 Verification Fields
   isVerified: {
     type: Boolean,
     default: false
   },
+  emailOTP: String,
+  emailOTPExpires: Date,
+
+
   profileComplete: {
     type: Boolean,
     default: false
   },
-  verificationToken: String,
+
   passwordResetToken: String,
   passwordResetExpires: Date,
+
   isBlocked: {
     type: Boolean,
     default: false
   },
+
   profilePhoto: {
     type: String,
     default: null
   },
+
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
+
 
 // Create models
 const User = mongoose.model('User', userSchema);
