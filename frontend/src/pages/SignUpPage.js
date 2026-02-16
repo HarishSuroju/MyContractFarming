@@ -38,12 +38,28 @@ const SignUpPage = () => {
   };
   const handleSendOTP = async () => {
     try {
+      // Validate required fields
+      if (!formData.email) {
+        alert("Please enter your email address");
+        return;
+      }
+      
+      if (!userType) {
+        alert("Please select your user type (Farmer or Contractor)");
+        return;
+      }
+
       setOtpLoading(true);
-      await authAPI.sendOTP({ email: formData.email });
+      await authAPI.sendOTP({ email: formData.email, role: userType });
       setShowOTPField(true);
       alert("OTP sent to email");
     } catch (error) {
-      alert("Failed to send OTP");
+      console.error("Failed to send OTP:", error);
+      if (error.response && error.response.data) {
+        alert(error.response.data.message || "Failed to send OTP");
+      } else {
+        alert("Failed to send OTP");
+      }
     } finally {
       setOtpLoading(false);
     }
@@ -91,7 +107,7 @@ const SignUpPage = () => {
       
       // Navigate to profile builder after a short delay
       setTimeout(() => {
-        navigate('/verify-otp', { state: { userId: response.data.userId } });
+        navigate('/verify-otp', { state: { email: formData.email } });
       }, 2000);
     } catch (error) {
       console.error('Signup error:', error);

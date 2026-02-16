@@ -197,9 +197,10 @@ const forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'User not found'
+      // Return success even if user not found to prevent email enumeration
+      return res.status(200).json({
+        status: 'success',
+        message: 'If an account exists with this email, a password reset link has been sent'
       });
     }
 
@@ -211,13 +212,68 @@ const forgotPassword = async (req, res) => {
     user.passwordResetExpires = resetTokenExpiry;
     await user.save();
 
-    // In a real app, send reset email here
-    // For now, we'll return the token in the response
-    res.status(200).json({
-      status: 'success',
-      message: 'Password reset link sent to your email',
-      data: { resetToken }
+    // Send reset email with the link
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+    
+    const emailResult = await sendEmail({
+      to: email,
+      subject: 'Password Reset Request - ACF Platform',
+      text: `
+        ACF Platform - Password Reset
+        
+        You requested a password reset. Click the link below to reset your password:
+        
+        ${resetUrl}
+        
+        This link will expire in 1 hour.
+        
+        If you didn't request this, please ignore this email.
+        
+        © 2025 ACF Platform. All rights reserved.
+      `,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #2563eb; margin: 0; font-size: 28px;">ACF Platform</h1>
+              <p style="color: #666; margin: 5px 0 0 0;">Assured Contract Farming</p>
+            </div>
+            
+            <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Password Reset Request</h2>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">You requested a password reset. Click the button below to reset your password:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+            </div>
+            
+            <p style="color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">This link will expire in <strong>1 hour</strong>.</p>
+            
+            <p style="color: #777; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">If you didn't request this password reset, please ignore this email. Your account remains secure.</p>
+            
+            <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; text-align: center;">
+              <p style="color: #999; font-size: 12px; margin: 0;">© 2025 ACF Platform. All rights reserved.</p>
+              <p style="color: #999; font-size: 12px; margin: 5px 0 0 0;">This is an automated message, please do not reply to this email.</p>
+            </div>
+          </div>
+        </div>
+      `
     });
+
+    if (emailResult.success) {
+      res.status(200).json({
+        status: 'success',
+        message: 'Password reset link sent to your email'
+      });
+    } else {
+      // If email sending fails, we still return success to prevent email enumeration attacks
+      // but log the issue for monitoring
+      console.warn(`Failed to send password reset email to ${email}:`, emailResult.error);
+      res.status(200).json({
+        status: 'success',
+        message: 'Password reset request received but failed to send email. Please try again later.'
+      });
+    }
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({
@@ -267,11 +323,31 @@ const resetPassword = async (req, res) => {
 
 const sendOTP = async (req, res) => {
   try {
-    const { email } = req.body;
+    console.log('sendOTP request received:', req.body);
+    const { email, role } = req.body;
 
-    // Check if email already exists
+    // Validate email format
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      console.log('Invalid email provided:', email);
+      return res.status(400).json({
+        status: 'error',
+        message: 'Valid email is required'
+      });
+    }
+
+    // Validate role
+    if (!role || (role !== 'farmer' && role !== 'contractor')) {
+      console.log('Invalid role provided:', role);
+      return res.status(400).json({
+        status: 'error',
+        message: 'Valid role (farmer or contractor) is required'
+      });
+    }
+
+    // Check if email already exists (only reject if verified)
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser && existingUser.isVerified) {
+      console.log('Email already registered:', email);
       return res.status(400).json({
         status: 'error',
         message: 'Email already registered'
@@ -281,30 +357,88 @@ const sendOTP = async (req, res) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Save OTP temporarily in DB (without full account)
-    const tempUser = new User({
-      name: "temp",
-      email,
-      phone: "0000000000",
-      password: "temp",
-      role: "contractor",
-      emailOTP: otp,
-      emailOTPExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
-      isVerified: false
-    });
+    // Use the role from frontend, default to "contractor" if not provided
+    const userRole = role || 'contractor';
 
-    await tempUser.save();
+    if (existingUser && !existingUser.isVerified) {
+      // If user exists but not verified, update the existing temp user
+      existingUser.emailOTP = otp;
+      existingUser.emailOTPExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+      existingUser.role = userRole;
+      await existingUser.save();
+    } else {
+      // Save OTP temporarily in DB (without full account)
+      const tempUser = new User({
+        name: "temp",
+        email,
+        phone: "0000000000",
+        password: "temp",
+        role: userRole,
+        emailOTP: otp,
+        emailOTPExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
+        isVerified: false
+      });
 
-    await sendEmail({
+      await tempUser.save();
+    }
+
+    const emailResult = await sendEmail({
       to: email,
-      subject: "Your OTP Verification Code",
-      text: `Your OTP is ${otp}`
+      subject: "Your ACF Platform Verification Code",
+      text: `
+        ACF Platform - Email Verification
+        
+        Thank you for signing up with ACF Platform!
+        
+        Your verification code is: ${otp}
+        
+        This code will expire in 10 minutes.
+        
+        If you didn't request this code, please ignore this email.
+        
+        © 2025 ACF Platform. All rights reserved.
+      `,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #2563eb; margin: 0; font-size: 28px;">ACF Platform</h1>
+              <p style="color: #666; margin: 5px 0 0 0;">Assured Contract Farming</p>
+            </div>
+            
+            <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Verify Your Email Address</h2>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">Thank you for signing up with ACF Platform! To complete your registration, please use the verification code below:</p>
+            
+            <div style="background-color: #2563eb; color: white; font-size: 32px; font-weight: bold; text-align: center; padding: 20px; border-radius: 8px; letter-spacing: 8px; margin: 30px 0;">
+              ${otp}
+            </div>
+            
+            <p style="color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">This code will expire in <strong>10 minutes</strong>. If you didn't request this code, please ignore this email.</p>
+            
+            <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; text-align: center;">
+              <p style="color: #999; font-size: 12px; margin: 0;">© 2025 ACF Platform. All rights reserved.</p>
+              <p style="color: #999; font-size: 12px; margin: 5px 0 0 0;">This is an automated message, please do not reply to this email.</p>
+            </div>
+          </div>
+        </div>
+      `
     });
 
-    res.status(200).json({
-      status: 'success',
-      message: 'OTP sent to email'
-    });
+    if (emailResult.success) {
+      res.status(200).json({
+        status: 'success',
+        message: 'OTP sent to email'
+      });
+    } else {
+      // If email sending fails, we still return success to prevent email enumeration attacks
+      // but log the issue for monitoring
+      console.warn(`Failed to send OTP email to ${email}:`, emailResult.error);
+      res.status(200).json({
+        status: 'success',
+        message: 'OTP generated but failed to send email. Please try again later.'
+      });
+    }
 
   } catch (error) {
     console.error(error);
@@ -374,11 +508,11 @@ const resendOTP = async (req, res) => {
 
     await user.save();
 
-    await sendEmail(
-      user.email,
-      "ACF Contractor Email Verification - Resend",
-      `Your new OTP is ${otp}. It is valid for 10 minutes.`
-    );
+    await sendEmail({
+      to: user.email,
+      subject: "ACF Contractor Email Verification - Resend",
+      text: `Your new OTP is ${otp}. It is valid for 10 minutes.`
+    });
 
     res.status(200).json({
       status: 'success',
@@ -403,5 +537,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verifyOTP,
-  resendOTP
+  resendOTP,
+  sendOTP
 };
