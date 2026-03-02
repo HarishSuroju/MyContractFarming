@@ -535,204 +535,169 @@ const CommunicationPage = () => {
   const roleGradient = isFarmer ? 'from-green-500 to-green-600' : 'from-blue-500 to-blue-600';
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 pb-8">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className={`rounded-3xl p-10 text-center relative overflow-hidden bg-gradient-to-br ${roleGradient} text-white`}>
-          <div className="absolute inset-0 bg-black bg-opacity-10"></div>
-          
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 pt-20 pb-12">
+      <div className="max-w-6xl mx-auto px-6">
+
+        {/* ===== Header Card ===== */}
+        <div className={`relative rounded-3xl p-12 text-center shadow-2xl bg-gradient-to-br ${roleGradient} text-white overflow-hidden`}>
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+
           <div className="relative z-10">
-            <div className={`w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center text-3xl font-bold shadow-lg ${isFarmer ? 'bg-green-400 bg-opacity-25' : 'bg-blue-400 bg-opacity-25'} border-4 border-white border-opacity-40`}>
+            <div className="w-28 h-28 mx-auto mb-6 rounded-full flex items-center justify-center text-4xl font-bold bg-white/20 backdrop-blur-md border border-white/30 shadow-xl">
               {getInitials(user.name)}
             </div>
-            
-            <h1 className="text-3xl font-bold mb-3">{user.name}</h1>
-            <span className="inline-block px-6 py-2 rounded-full font-bold text-lg bg-white bg-opacity-25 backdrop-blur-sm">
-              {user.role === 'farmer' ? t('Farmer') : t('Contractor')}
-            </span>
+            <h1 className="text-4xl font-bold tracking-wide">{user.name}</h1>
+            <p className="mt-3 text-lg opacity-90">
+              {user.role === 'farmer' ? "🌾 Farmer" : "🏢 Contractor"}
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Communication Options */}
+        {/* ===== Layout ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
+
+          {/* ===== Left Panel (Actions) ===== */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">
-                {t('Communication Options')}
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/40">
+              <h3 className="text-2xl font-bold text-slate-800 mb-8 text-center">
+                Communication Hub
               </h3>
 
               {callStatus && (
-                <div className="mb-4 text-center text-sm text-gray-700">
+                <div className="mb-6 text-center text-sm font-medium text-indigo-600">
                   {callStatus}
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-6">
+
+                {/* 3D Button */}
                 <button
                   onClick={handleAudioCall}
-                  className="w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 bg-gradient-to-r from-purple-500 to-purple-600 border-2 border-purple-500 hover:from-purple-600 hover:to-purple-700 flex items-center justify-center gap-3"
+                  className="w-full py-4 rounded-2xl font-semibold text-white bg-gradient-to-r from-purple-500 to-purple-700 shadow-lg hover:shadow-purple-500/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <span>📞</span> {t('Audio Call')}
+                  📞 Audio Call
                 </button>
-                
+
                 <button
                   onClick={handleVideoCall}
-                  className="w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 bg-gradient-to-r from-indigo-500 to-indigo-600 border-2 border-indigo-500 hover:from-indigo-600 hover:to-indigo-700 flex items-center justify-center gap-3"
+                  className="w-full py-4 rounded-2xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-700 shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <span>🎥</span> {t('Video Call')}
+                  🎥 Video Call
                 </button>
 
                 {isInCall && (
                   <button
                     onClick={handleEndCallClick}
-                    className="w-full py-3 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 bg-gradient-to-r from-red-500 to-red-600 border-2 border-red-500 hover:from-red-600 hover:to-red-700 flex items-center justify-center gap-3"
+                    className="w-full py-4 rounded-2xl font-semibold text-white bg-gradient-to-r from-red-500 to-red-700 shadow-lg hover:shadow-red-500/40 hover:-translate-y-1 transition-all duration-300"
                   >
-                    <span>✖</span> {t('End Call')}
+                    ✖ End Call
                   </button>
                 )}
-                
+
                 <button
                   onClick={handleFarmVisit}
-                  className="w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 bg-gradient-to-r from-orange-500 to-orange-600 border-2 border-orange-500 hover:from-orange-600 hover:to-orange-700 flex items-center justify-center gap-3"
+                  className="w-full py-4 rounded-2xl font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg hover:shadow-orange-500/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                  <span>🏡</span> {t('Farm Visit')}
+                  🏡 Request Farm Visit
                 </button>
-                
+
                 <button
                   onClick={handleAgreement}
-                  className="w-full py-4 px-6 rounded-xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 bg-gradient-to-r from-green-500 to-green-600 border-2 border-green-500 hover:from-green-600 hover:to-green-700"
+                  className="w-full py-4 rounded-2xl font-semibold text-white bg-gradient-to-r from-green-500 to-green-700 shadow-lg hover:shadow-green-500/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                  {t('Create Agreement')}
+                  📄 Create Agreement
                 </button>
-              </div>
-              
-              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
-                <p>{t('Future Features Note')}</p>
+
               </div>
             </div>
           </div>
-          
-          {/* Chat & Call Interface */}
+
+          {/* ===== Chat Section ===== */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl p-6 shadow-lg h-full flex flex-col">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-800">
-                  {t('Chat Title')}
-                </h3>
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col h-[650px]">
+
+              {/* Header */}
+              <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                <h3 className="text-2xl font-bold text-slate-800">Secure Chat</h3>
                 {callType && (
-                  <span className="mt-2 md:mt-0 inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                    {callType === 'video' ? t('In Video Call') : t('In Audio Call')}
+                  <span className="px-4 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-700">
+                    {callType === 'video' ? "In Video Call" : "In Audio Call"}
                   </span>
                 )}
               </div>
 
-              {(isInCall || incomingCall) && (
-                <div className="mb-4 bg-black rounded-xl overflow-hidden relative h-64 md:h-72 flex items-center justify-center">
-                  <video
-                    ref={remoteVideoRef}
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                  <video
-                    ref={localVideoRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="w-32 h-24 md:w-40 md:h-28 object-cover rounded-lg border-2 border-white absolute bottom-3 right-3 bg-black"
-                  />
-                  {!isInCall && incomingCall && (
-                    <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center text-white px-4">
-                      <p className="text-lg font-semibold mb-4">
-                        {incomingCall.hasVideo ? t('Incoming Video Call') : t('Incoming Audio Call')}
-                      </p>
-                      <div className="flex gap-4">
-                        <button
-                          onClick={acceptIncomingCall}
-                          className="px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 font-bold"
-                        >
-                          {t('Accept')}
-                        </button>
-                        <button
-                          onClick={rejectIncomingCall}
-                          className="px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 font-bold"
-                        >
-                          {t('Reject')}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-8 py-6 bg-gradient-to-b from-slate-50 to-white space-y-4">
 
-              <div className="flex-grow bg-gray-50 rounded-xl p-4 mb-4 h-96 overflow-y-auto">
                 {messages.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-gray-500">
-                    {t('Start Conversation')}
+                  <div className="h-full flex items-center justify-center text-slate-400">
+                    Start your secure conversation
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`p-3 rounded-xl max-w-xs md:max-w-md ${
-                          msg.sender === 'me'
-                            ? 'bg-green-500 text-white ml-auto'
-                            : 'bg-gray-200 text-gray-800 mr-auto'
-                        }`}
-                      >
-                        <div className="text-sm">{msg.text}</div>
-                        <div className={`text-xs mt-1 flex items-center ${
-                          msg.sender === 'me' ? 'text-green-100' : 'text-gray-500'
-                        }`}>
-                          <span>{msg.timestamp}</span>
-                          {msg.sender === 'me' && msg.isRead && (
-                            <span className="ml-2 text-xs">✓✓</span>
-                          )}
-                        </div>
+                  messages.map(msg => (
+                    <div
+                      key={msg.id}
+                      className={`max-w-md px-5 py-3 rounded-2xl shadow-md text-sm ${
+                        msg.sender === 'me'
+                          ? "ml-auto bg-gradient-to-r from-green-500 to-green-600 text-white shadow-green-300/40"
+                          : "mr-auto bg-slate-200 text-slate-800"
+                      }`}
+                    >
+                      {msg.text}
+                      <div className="text-xs mt-2 opacity-70">
+                        {msg.timestamp}
                       </div>
-                    ))}
-                    {otherUserTyping && (
-                      <div className="bg-gray-200 text-gray-800 p-3 rounded-xl max-w-xs md:max-w-md mr-auto">
-                        <div className="text-sm italic text-gray-500">{t('communication.typingIndicator')}</div>
-                      </div>
-                    )}
+                    </div>
+                  ))
+                )}
+
+                {otherUserTyping && (
+                  <div className="text-sm italic text-slate-500">
+                    Typing...
                   </div>
                 )}
+
               </div>
-              
-              <div className="flex gap-2">
+
+              {/* Input */}
+              <div className="p-6 border-t border-slate-200 flex gap-4 bg-white">
                 <input
                   type="text"
                   value={message}
                   onChange={handleInputChange}
-                  placeholder={t('Message Placeholder')}
-                  className="flex-grow px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type your message..."
+                  className="flex-1 px-6 py-3 rounded-2xl border border-slate-300 focus:ring-2 focus:ring-green-500 outline-none shadow-sm"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                 />
+
                 <button
                   onClick={handleSendMessage}
                   disabled={!message.trim()}
-                  className={`px-6 py-3 rounded-xl font-bold ${
+                  className={`px-8 py-3 rounded-2xl font-semibold transition-all duration-300 ${
                     message.trim()
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg hover:-translate-y-1 hover:shadow-green-400/40"
+                      : "bg-slate-300 text-slate-500 cursor-not-allowed"
                   }`}
                 >
-                  {t('Send')}
+                  Send
                 </button>
               </div>
+
             </div>
           </div>
         </div>
-        
-        <div className="mt-6 text-center">
+
+        {/* Back */}
+        <div className="mt-10 text-center">
           <button
             onClick={() => navigate(-1)}
-            className="py-3 px-6 rounded-xl font-bold text-gray-800 bg-gray-200 shadow hover:shadow-md transition-all duration-300 border-2 border-gray-300 hover:bg-gray-300"
+            className="px-8 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 font-semibold shadow-md transition-all"
           >
-            {t('Back')}
+            Back
           </button>
         </div>
+
       </div>
     </div>
   );

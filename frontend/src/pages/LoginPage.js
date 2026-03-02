@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { authAPI } from '../services/api';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { setAuthSession } from '../utils/authStorage';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -20,6 +21,9 @@ const LoginPage = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const googleButtonRef = useRef(null);
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+  const isGoogleConfigured = Boolean(googleClientId);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -38,13 +42,7 @@ const LoginPage = () => {
       if (response.data.status === 'success') {
         const { token, user } = response.data.data;
         
-        // Store token and user info in localStorage
-        localStorage.setItem('token', token);
-        localStorage.setItem('userId', user.id);
-        localStorage.setItem('userRole', user.role);
-        
-        // Set token in axios header
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        handleAuthSuccess(token, user, rememberMe);
         
         setModalMessage(`${t('login.welcomeBack', { name: user.name })} ${t('login.loggedInAs', { role: user.role })}`);
         setModalType('success');
@@ -68,6 +66,87 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  const handleAuthSuccess = (token, user, shouldRemember = true) => {
+    setAuthSession({
+      token,
+      userId: user.id,
+      userRole: user.role,
+      rememberMe: shouldRemember
+    });
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  };
+
+  useEffect(() => {
+    let intervalId;
+    let initialized = false;
+
+    const initializeGoogleSignIn = () => {
+      if (initialized || !window.google?.accounts?.id || !googleButtonRef.current) {
+        return;
+      }
+
+      if (!googleClientId) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response) => {
+          try {
+            const apiResponse = await authAPI.googleLogin(response.credential);
+
+            if (apiResponse.data.status === 'success') {
+              const { token, user } = apiResponse.data.data;
+              handleAuthSuccess(token, user, rememberMe);
+              setModalMessage(`${t('login.welcomeBack', { name: user.name })} ${t('login.loggedInAs', { role: user.role })}`);
+              setModalType('success');
+              setShowModal(true);
+
+              setTimeout(() => {
+                if (user.role === 'farmer') {
+                  navigate('/farmer-dashboard');
+                } else {
+                  navigate('/contractor-dashboard');
+                }
+              }, 1500);
+            }
+          } catch (error) {
+            console.error('Google login error:', error);
+            setModalMessage(error.response?.data?.message || 'Google login failed');
+            setModalType('error');
+            setShowModal(true);
+          }
+        }
+      });
+
+      googleButtonRef.current.innerHTML = '';
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'pill',
+        width: 320
+      });
+
+      initialized = true;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+
+    initializeGoogleSignIn();
+    if (!initialized) {
+      intervalId = setInterval(initializeGoogleSignIn, 500);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [googleClientId, navigate, rememberMe, t]);
   
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
@@ -283,6 +362,34 @@ const LoginPage = () => {
                   ? t('login.signingIn')
                   : t('login.loginButton')}
               </button>
+            </div>
+
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500">or</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              {isGoogleConfigured ? (
+                <div ref={googleButtonRef} />
+              ) : (
+                <div className="w-full">
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-3 border border-gray-300 rounded-xl text-gray-500 bg-gray-100 cursor-not-allowed"
+                  >
+                    Continue with Google
+                  </button>
+                  <p className="mt-2 text-xs text-red-500 text-center">
+                    Set REACT_APP_GOOGLE_CLIENT_ID in frontend/.env and restart frontend.
+                  </p>
+                </div>
+              )}
             </div>
 
           </form>

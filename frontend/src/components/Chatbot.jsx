@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import { getToken } from '../utils/authStorage';
 
 const Chatbot = () => {
   // Load messages from localStorage on component mount
@@ -18,7 +19,7 @@ const Chatbot = () => {
   const chatContainerRef = useRef(null);
 
   // Check if user is logged in
-  const token = localStorage.getItem('token');
+  const token = getToken();
   
   // If user is not logged in, redirect to login
   useEffect(() => {
@@ -30,7 +31,7 @@ const Chatbot = () => {
   // Clear chat history when user logs out
   useEffect(() => {
     const handleStorageChange = () => {
-      const currentToken = localStorage.getItem('token');
+      const currentToken = getToken();
       if (!currentToken) {
         // User has logged out, clear chat history
         localStorage.removeItem('chatbotMessages');

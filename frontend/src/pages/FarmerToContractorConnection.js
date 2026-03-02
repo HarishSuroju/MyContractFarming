@@ -421,11 +421,12 @@ const FarmerToContractorConnection = () => {
                     formErrors.cropType ? 'border-red-500' : 'border-gray-300'
                   }`}
                 >
-                  <option value="">{t('Enter crop type')}</option>
-                  {(preferredCrops && preferredCrops.length > 0 ? preferredCrops : availableCrops).map(crop => (
+                  <option value="">{t('Select crop from contractor demand')}</option>
+                  {cropsToShow.map(crop => (
                     <option key={crop} value={crop}>{crop}</option>
                   ))}
                 </select>
+
                 {formErrors.cropType && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.cropType}</p>
                 )}

@@ -234,7 +234,8 @@ const SignUpPage = () => {
                 />
               </div>
 
-              {/* Email */}
+              {/* Email - Only for contractors */}
+              {userType !== 'farmer' && (
               <div className="mb-6">
               <label>{t('signUp.emailLabel')}</label>
 
@@ -245,7 +246,7 @@ const SignUpPage = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="flex-1 p-3 border rounded"
-                  required
+                  required={userType !== 'farmer'}
                 />
 
                 <button
@@ -258,6 +259,34 @@ const SignUpPage = () => {
                 </button>
               </div>
             </div>
+            )}
+
+            {/* Phone - Only for farmers */}
+            {userType === 'farmer' && (
+            <div className="mb-6">
+              <label>{t('signUp.phoneLabel')}</label>
+
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="flex-1 p-3 border rounded"
+                  required={userType === 'farmer'}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleSendOTP}
+                  disabled={!formData.phone || emailVerified}
+                  className="px-4 bg-blue-600 text-white rounded disabled:opacity-50"
+                >
+                  {emailVerified ? "Verified" : "Verify Phone"}
+                </button>
+              </div>
+            </div>
+            )}
 
             {showOTPField && !emailVerified && (
             <div className="mb-6">
@@ -281,7 +310,8 @@ const SignUpPage = () => {
             </div>
           )}
 
-              {/* Phone */}
+              {/* Phone - Only for contractors (not farmers) */}
+              {userType !== 'farmer' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('signUp.phoneLabel')}
@@ -291,10 +321,11 @@ const SignUpPage = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  required
+                  required={userType !== 'farmer'}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
                 />
               </div>
+              )}
 
               {/* Password */}
               <div>

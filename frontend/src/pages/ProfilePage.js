@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authAPI, profileAPI } from '../services/api';
+import { clearAuthSession, getAuthValue } from '../utils/authStorage';
 import '../App.css';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('userRole') || 'farmer';
+  const userRole = getAuthValue('userRole') || 'farmer';
   
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -83,8 +84,7 @@ const ProfilePage = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    clearAuthSession();
     localStorage.removeItem('profileComplete');
     navigate('/');
   };

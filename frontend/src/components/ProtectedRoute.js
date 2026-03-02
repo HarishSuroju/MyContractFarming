@@ -1,10 +1,11 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import LoginPrompt from './LoginPrompt';
+import { getAuthValue, getToken } from '../utils/authStorage';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
-  const token = localStorage.getItem('token');
-  const userRole = localStorage.getItem('userRole');
+  const token = getToken();
+  const userRole = getAuthValue('userRole');
 
   // If no token, show login prompt
   if (!token) {

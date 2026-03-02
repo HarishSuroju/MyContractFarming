@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
@@ -24,17 +24,23 @@ import Unauthorized from './pages/Unauthorized';
 import ConnectionRequests from './pages/ConnectionRequests';
 import Requests from './pages/Requests';
 import VerifyOTPPage from "./pages/VerifyOTPPage";
+import FarmerToContractorConnection from './pages/FarmerToContractorConnection';
+import ContractorInterestSubmission from './pages/ContractorInterestSubmission';
 
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Chatbot from './components/Chatbot';
 import FloatingChatButton from './components/FloatingChatButton';
 import Footer from './components/Footer';
+import { cleanupSessionAuthOnStartup } from './utils/authStorage';
 
 
 // ✅ This component CAN use useLocation
 function AppContent() {
   const location = useLocation();
+  useEffect(() => {
+    cleanupSessionAuthOnStartup();
+  }, []);
 
   const hideLayoutRoutes = ["/login", "/signup", "/verify-otp"];
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
@@ -181,6 +187,24 @@ function AppContent() {
           }
         />
 
+        {/* 🔄 CONNECTION FLOWS */}
+        <Route
+          path="/farmer-contractor-connection/:userId"
+          element={
+            <ProtectedRoute>
+              <FarmerToContractorConnection />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/contractor-interest/:userId"
+          element={
+            <ProtectedRoute>
+              <ContractorInterestSubmission />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       {!hideLayout && <Footer />}

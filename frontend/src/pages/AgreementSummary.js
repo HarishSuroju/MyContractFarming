@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { profileAPI, agreementAPI, notificationAPI } from '../services/api';
+import { getAuthValue, getToken } from '../utils/authStorage';
 
 const AgreementSummary = () => {
   const { t } = useTranslation();
@@ -46,9 +47,9 @@ const AgreementSummary = () => {
   const handleAgree = async () => {
     try {
       // Debug authentication
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
-      const userRole = localStorage.getItem('userRole');
+      const token = getToken();
+      const userId = getAuthValue('userId');
+      const userRole = getAuthValue('userRole');
       
       console.log('Authentication Debug Info:');
       console.log('Token exists:', !!token);
@@ -66,8 +67,8 @@ const AgreementSummary = () => {
       }
 
       // Get current user info
-      const currentUserId = localStorage.getItem('userId');
-      const currentUserRole = localStorage.getItem('userRole');
+      const currentUserId = getAuthValue('userId');
+      const currentUserRole = getAuthValue('userRole');
 
       // Make sure we have the required user info
       if (!currentUserId || !currentUserRole) {

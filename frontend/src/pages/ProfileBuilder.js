@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { profileAPI } from '../services/api';
+import { getAuthValue, getToken } from '../utils/authStorage';
 
 const ProfileBuilder = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('userRole') || 'farmer';
+  const userRole = getAuthValue('userRole') || 'farmer';
   
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) {
       // Redirect to login page if not logged in
       navigate('/login');

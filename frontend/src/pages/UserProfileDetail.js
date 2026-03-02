@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { profileAPI, connectionAPI } from '../services/api';
+import { profileAPI } from '../services/api';
+import { getAuthValue } from '../utils/authStorage';
 
 const UserProfileDetail = () => {
   const { t } = useTranslation();
@@ -97,7 +98,7 @@ const UserProfileDetail = () => {
 
   const handleConnect = () => {
     // Determine if current user is farmer or contractor
-    const currentUserRole = localStorage.getItem('userRole');
+    const currentUserRole = getAuthValue('userRole');
     
     if (currentUserRole === 'farmer' && user.role === 'contractor') {
       // Flow 1: Farmer connects to Contractor
@@ -106,8 +107,8 @@ const UserProfileDetail = () => {
       // Flow 2: Contractor connects to Farmer
       navigate(`/contractor-interest/${userId}`);
     } else {
-      // For same roles, use direct connection
-      navigate(`/connection-request/${userId}`);
+      // For same roles, open direct communication.
+      navigate(`/communication/${userId}`);
     }
   };
 

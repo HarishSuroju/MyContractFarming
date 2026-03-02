@@ -3,14 +3,15 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import NotificationBell from './NotificationBell';
+import { clearAuthSession, getAuthValue, getToken } from '../utils/authStorage';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const token = localStorage.getItem('token');
-  const userRole = localStorage.getItem('userRole');
+  const token = getToken();
+  const userRole = getAuthValue('userRole');
 
   const [user, setUser] = useState(null);
   const [menuActive, setMenuActive] = useState(false);
@@ -33,10 +34,8 @@ const Navbar = () => {
   }, [token]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    clearAuthSession();
     localStorage.removeItem('profileComplete');
-    localStorage.removeItem('userId');
     navigate('/');
   };
 

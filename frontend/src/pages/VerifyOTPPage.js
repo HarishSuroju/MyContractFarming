@@ -1,37 +1,46 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { authAPI } from '../services/api';
 
 const VerifyOTPPage = () => {
   const [otp, setOtp] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email;
+  const { email, phone, userType } = location.state || {};
 
   const handleVerify = async () => {
     try {
-      const res = await axios.post('/api/auth/verify-otp', {
-        email,
+      // Prepare data based on user type
+      const requestData = {
         otp
-      });
+      };
+
+      if (userType === 'farmer' && phone) {
+        requestData.phone = phone;
+      } else if (email) {
+        requestData.email = email;
+      }
+
+      const res = await authAPI.verifyOTP(requestData);
 
       if (res.data.status === 'success') {
-        alert('Email verified successfully!');
+        alert('Verification successful!');
         navigate('/profile-builder');
       }
 
     } catch (err) {
+      console.error('Verification error:', err);
       alert(err.response?.data?.message || 'Invalid OTP');
     }
   };
 
-  // Handle case where email is not provided
-  if (!email) {
+  // Handle case where neither email nor phone is provided
+  if (!email && !phone) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-white p-8 rounded-xl shadow-xl">
           <h2 className="text-xl font-bold mb-4">Error</h2>
-          <p className="text-gray-600">Email not found. Please try again from the signup page.</p>
+          <p className="text-gray-600">Verification information not found. Please try again from the signup page.</p>
           <button
             onClick={() => navigate('/signup')}
             className="mt-4 bg-green-600 text-white px-4 py-2 rounded w-full"
@@ -43,14 +52,17 @@ const VerifyOTPPage = () => {
     );
   }
 
+  const targetContact = userType === 'farmer' ? phone : email;
+  const contactType = userType === 'farmer' ? 'phone' : 'email';
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="bg-white p-8 rounded-xl shadow-xl">
         <h2 className="text-xl font-bold mb-4">
-          Verify Email
+          Verify {contactType.charAt(0).toUpperCase() + contactType.slice(1)}
         </h2>
         <p className="text-gray-600 mb-4">
-          Enter the OTP sent to {email}
+          Enter the OTP sent to {targetContact}
         </p>
 
         <input
