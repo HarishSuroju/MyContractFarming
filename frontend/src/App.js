@@ -33,6 +33,7 @@ import Chatbot from './components/Chatbot';
 import FloatingChatButton from './components/FloatingChatButton';
 import Footer from './components/Footer';
 import { cleanupSessionAuthOnStartup } from './utils/authStorage';
+import { LanguageProvider } from './context/LanguageContext';
 
 
 // ✅ This component CAN use useLocation
@@ -217,9 +218,11 @@ function AppContent() {
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
-      <Router>
-        <AppContent />
-      </Router>
+      <LanguageProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </LanguageProvider>
     </I18nextProvider>
   );
 }
