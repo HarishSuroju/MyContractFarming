@@ -17,5 +17,6 @@ router.post('/resend-otp', resendOTP);
 // Protected routes
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile/image', authenticateToken, updateProfileImage);
+router.put('/preferred-language', authenticateToken, updatePreferredLanguage);
 
 module.exports = router;
