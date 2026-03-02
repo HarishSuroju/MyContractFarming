@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { notificationAPI } from '../services/api';
 import io from 'socket.io-client';
+import { getAuthValue, getToken } from '../utils/authStorage';
 
 const NotificationBell = () => {
   const { t } = useTranslation();
@@ -14,8 +15,8 @@ const NotificationBell = () => {
 
   useEffect(() => {
     // Initialize Socket.IO connection
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
+    const token = getToken();
+    const userId = getAuthValue('userId');
     
     if (token && userId) {
       socketRef.current = io('http://localhost:5000', {
@@ -171,7 +172,7 @@ const NotificationBell = () => {
         // Validate senderId before navigating
         if (senderId && senderId.length >= 12) {
           // Check if user is navigating to their own profile
-          const currentUserId = localStorage.getItem('userId');
+          const currentUserId = getAuthValue('userId');
           if (senderId === currentUserId) {
             // If it's their own notification, redirect to connection requests
             window.location.href = '/connection-requests';
@@ -184,10 +185,10 @@ const NotificationBell = () => {
         }
         break;
       case 'agreement':
-        window.location.href = `/agreement-manager/${notification.referenceId}`;
+        window.location.href = '/agreements';
         break;
       case 'proposal':
-        window.location.href = `/proposals`;
+        window.location.href = '/dashboard/requests?tab=incoming';
         break;
       default:
         // Handle other notification types

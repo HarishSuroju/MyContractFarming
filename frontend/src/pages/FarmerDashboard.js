@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ConnectionRequestsPreview from '../components/ConnectionRequestsPreview';
 import { agreementAPI, notificationAPI } from '../services/api';
 import { getThemeByRole } from '../utils/colorTheme';
+import { clearAuthSession } from '../utils/authStorage';
 
 const FarmerDashboard = () => {
   const { t } = useTranslation();
@@ -103,9 +104,7 @@ const FarmerDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
+    clearAuthSession();
     navigate('/');
   };
 

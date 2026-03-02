@@ -57,6 +57,12 @@ const userSchema = new mongoose.Schema({
     required: true
   },
 
+  preferredLanguage: {
+    type: String,
+    enum: ['en', 'hi', 'te', 'ta', 'kn', 'ml'],
+    default: 'en'
+  },
+
   // 🔐 Verification Fields
   isVerified: {
     type: Boolean,
@@ -64,6 +70,10 @@ const userSchema = new mongoose.Schema({
   },
   emailOTP: String,
   emailOTPExpires: Date,
+  
+  // Phone OTP for farmers
+  phoneOTP: String,
+  phoneOTPExpires: Date,
 
 
   profileComplete: {

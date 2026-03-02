@@ -3,6 +3,7 @@ import { profileAPI } from '../services/api';
 import { jwtDecode } from 'jwt-decode'; // Import jwt-decode to get user info from token
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { clearAuthSession, getToken } from '../utils/authStorage';
 
 const UsersDirectory = () => {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ const UsersDirectory = () => {
 
   // Clear any potentially expired tokens on component mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (token) {
       try {
         // Decode JWT to check if it's expired (simple check without verification)
@@ -27,12 +28,12 @@ const UsersDirectory = () => {
         
         if (payload.exp && payload.exp < currentTime) {
           console.log('Removing expired token from localStorage');
-          localStorage.removeItem('token');
+          clearAuthSession();
         }
       } catch (e) {
         // If token is malformed, just remove it
         console.log('Removing malformed token from localStorage');
-        localStorage.removeItem('token');
+        clearAuthSession();
       }
     }
   }, []);
@@ -104,7 +105,7 @@ const UsersDirectory = () => {
       setLoading(true);
       
       // Get current user ID from the token
-      const token = localStorage.getItem('token');
+      const token = getToken();
       let currentUserId = null;
       if (token) {
         try {
@@ -227,7 +228,7 @@ const UsersDirectory = () => {
       console.error('Error details:', error?.response || error?.message);
       // If the error is related to authentication, clear the token
       if (error.response && error.response.status === 403) {
-        localStorage.removeItem('token');
+        clearAuthSession();
       }
       // Fallback to sample data if API fails
       const sampleUsers = [

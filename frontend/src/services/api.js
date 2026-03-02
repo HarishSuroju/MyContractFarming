@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthSession, getToken } from '../utils/authStorage';
 
 // Create an axios instance
 const api = axios.create({
@@ -13,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Get token from localStorage or state management
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -32,7 +33,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 403 && 
         error.response.data.message && 
         error.response.data.message.includes('expired')) {
-      localStorage.removeItem('token');
+      clearAuthSession();
     }
       
     // Handle common errors
@@ -47,6 +48,7 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
   login: (credentials) => api.post('/auth/login', credentials),
+  googleLogin: (credential) => api.post('/auth/google-login', { credential }),
   getProfile: () => api.get('/auth/profile'),
   updateProfileImage: (imageData) => api.put('/auth/profile/image', imageData),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
@@ -94,10 +96,7 @@ export const profileAPI = {
       },
     });
     return publicApi.get(`/api/profile/user/${userId}`);
-  },
-
-  // Get all users from the profile directory
-  getAllUsers: () => api.get('/profile/all')
+  }
 };
 
 // Agreement API calls
