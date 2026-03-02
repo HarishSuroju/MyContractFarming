@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { authAPI } from '../services/api';
 import NotificationBell from './NotificationBell';
 import { clearAuthSession, getAuthValue, getToken } from '../utils/authStorage';
+import { useLanguage } from '../context/LanguageContext';
 
 const Navbar = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { currentLanguage, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,8 +51,8 @@ const Navbar = () => {
       .substring(0, 2);
   };
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
+  const changeLanguage = async (lng) => {
+    await setLanguage(lng);
   };
 
   /* ===============================
@@ -94,7 +96,7 @@ const Navbar = () => {
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Home
+            {t('navbar.home')}
           </Link>
 
           {/* Dashboard */}
@@ -113,7 +115,7 @@ const Navbar = () => {
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Dashboard
+              {t('navbar.dashboard')}
             </Link>
           )}
 
@@ -127,7 +129,7 @@ const Navbar = () => {
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Requests
+              {t('navbar.connectionRequests')}
             </Link>
           )}
 
@@ -140,7 +142,7 @@ const Navbar = () => {
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Directory
+            {t('navbar.userDirectory')}
           </Link>
 
           {/* Help */}
@@ -152,13 +154,13 @@ const Navbar = () => {
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Help
+            {t('navbar.help')}
           </Link>
 
           {/* Language */}
           <select
             onChange={(e) => changeLanguage(e.target.value)}
-            value={i18n.language}
+            value={currentLanguage}
             className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value="en">EN</option>
@@ -176,14 +178,14 @@ const Navbar = () => {
                 to="/login"
                 className="text-gray-700 hover:text-green-600 font-medium transition"
               >
-                Login
+                {t('navbar.login')}
               </Link>
 
               <Link
                 to="/signup"
                 className="bg-green-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-green-700 transition shadow-sm"
               >
-                Get Started
+                {t('navbar.signUp')}
               </Link>
             </>
           ) : (
@@ -204,7 +206,7 @@ const Navbar = () => {
                 onClick={handleLogout}
                 className="text-red-600 font-medium hover:text-red-700 transition"
               >
-                Logout
+                {t('navbar.logout')}
               </button>
             </>
           )}

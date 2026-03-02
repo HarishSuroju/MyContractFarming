@@ -55,7 +55,8 @@ export const authAPI = {
   resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
   sendOTP: (data) => api.post('/auth/send-otp', data),
   verifyOTP: (data) => api.post('/auth/verify-otp', data),
-  resendOTP: (data) => api.post('/auth/resend-otp', data)
+  resendOTP: (data) => api.post('/auth/resend-otp', data),
+  updatePreferredLanguage: (preferredLanguage) => api.put('/auth/preferred-language', { preferredLanguage })
 };
 
 // Profile API calls
@@ -166,3 +167,10 @@ export const messageAPI = {
 };
 
 export default api;
+
+
+// Translation API calls
+export const translationAPI = {
+  translateDynamic: ({ text, fromLang = 'auto', toLang }) =>
+    api.post('/translations/dynamic', { text, fromLang, toLang })
+};
