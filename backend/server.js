@@ -17,7 +17,7 @@ const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const messageRoutes = require('./routes/messages');
 const chatbotRoutes = require('./routes/chatbot');
-const translationRoutes = require('./routes/translations');
+const translationRoutes = require('./routes/translation');
 
 // App initialization
 const app = express();

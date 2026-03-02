@@ -21,6 +21,7 @@ const translateDynamicText = async (req, res) => {
         toLang,
         translatedText: result.translatedText,
         cacheHit: result.cacheHit,
+        provider: result.provider,
       },
     });
   } catch (error) {
