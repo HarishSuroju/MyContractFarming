@@ -107,7 +107,10 @@ const login = async (req, res) => {
           phone: user.phone,
           role: user.role,
           profileComplete: user.profileComplete,
-          preferredLanguage: user.preferredLanguage
+          preferredLanguage: user.preferredLanguage,
+          verificationStatus: user.verificationStatus,
+          verificationDocument: user.verificationDocument,
+          verificationRemarks: user.verificationRemarks
         }
       }
     });
@@ -187,7 +190,10 @@ const googleLogin = async (req, res) => {
           email: user.email,
           phone: user.phone,
           role: user.role,
-          profileComplete: user.profileComplete
+          profileComplete: user.profileComplete,
+          verificationStatus: user.verificationStatus,
+          verificationDocument: user.verificationDocument,
+          verificationRemarks: user.verificationRemarks
         }
       }
     });
@@ -244,6 +250,51 @@ const updateProfileImage = async (req, res) => {
       status: 'error',
       message: 'Server error while updating profile image',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+const uploadVerificationDocument = async (req, res) => {
+  try {
+    const { fileUrl } = req.body;
+
+    if (!fileUrl || typeof fileUrl !== 'string') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Verification document URL is required'
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    user.verificationDocument = {
+      fileUrl: fileUrl.trim(),
+      uploadedAt: new Date()
+    };
+    user.verificationStatus = 'pending';
+    user.verificationRemarks = '';
+    await user.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Verification document uploaded successfully',
+      data: {
+        verificationStatus: user.verificationStatus,
+        verificationDocument: user.verificationDocument,
+        verificationRemarks: user.verificationRemarks
+      }
+    });
+  } catch (error) {
+    console.error('Upload verification document error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Server error while uploading verification document'
     });
   }
 };
@@ -711,6 +762,7 @@ module.exports = {
   googleLogin,
   getProfile,
   updateProfileImage,
+  uploadVerificationDocument,
   forgotPassword,
   resetPassword,
   verifyOTP,

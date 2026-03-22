@@ -14,13 +14,14 @@ const {
   submitRating
 } = require('../controllers/agreementController');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
+const { requireApprovedVerification } = require('../middleware/verification');
 
 const router = express.Router();
+router.use(authenticateToken, requireApprovedVerification);
 
 // Agreement routes
 router.post(
   '/',
-  authenticateToken,
   authorizeRoles('farmer', 'contractor'),
   createAgreement
 );
@@ -28,7 +29,6 @@ router.post(
 // Send agreement to contractor
 router.put(
   '/:agreementId/send',
-  authenticateToken,
   authorizeRoles('farmer'),
   sendAgreement
 );
@@ -36,56 +36,48 @@ router.put(
 // Send agreement to farmer
 router.put(
   '/:agreementId/send-to-farmer',
-  authenticateToken,
   authorizeRoles('contractor'),
   sendAgreementToFarmer
 );
 
 router.get(
   '/',
-  authenticateToken,
   authorizeRoles('farmer', 'contractor', 'admin'),
   getUserAgreements
 );
 
 router.get(
   '/:agreementId',
-  authenticateToken,
   authorizeRoles('farmer', 'contractor', 'admin'),
   getAgreementById
 );
 
 router.put(
   '/:agreementId',
-  authenticateToken,
   authorizeRoles('contractor'),
   updateAgreement
 );
 
 router.put(
   '/:agreementId/status',
-  authenticateToken,
   authorizeRoles('farmer', 'contractor'),
   updateAgreementStatus
 );
 
 router.put(
   '/:agreementId/sign',
-  authenticateToken,
   authorizeRoles('farmer', 'contractor'),
   signAgreement
 );
 
 router.post(
   '/:agreementId/send-otp',
-  authenticateToken,
   authorizeRoles('farmer'),
   sendOtp
 );
 
 router.post(
   '/:agreementId/accept',
-  authenticateToken,
   authorizeRoles('contractor'),
   acceptAgreement
 );
@@ -93,7 +85,6 @@ router.post(
 // Mock payment workflow (contractor pays farmer)
 router.post(
   '/:agreementId/payments/mock',
-  authenticateToken,
   authorizeRoles('contractor'),
   initiateMockPayment
 );
@@ -101,7 +92,6 @@ router.post(
 // Rating submission after contract completion
 router.post(
   '/:agreementId/rate',
-  authenticateToken,
   authorizeRoles('farmer', 'contractor'),
   submitRating
 );

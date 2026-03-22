@@ -1,0 +1,65 @@
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/assuredcontractfarming
+      - JWT_SECRET=${JWT_SECRET:-changeme}
+      - NODE_ENV=${NODE_ENV:-development}
+      - LIBRETRANSLATE_URL=${LIBRETRANSLATE_URL}
+      - ARGOS_URL=${ARGOS_URL:-http://argos:8000/translate}
+      - TRANSLATION_PREFER_ARGOS=${TRANSLATION_PREFER_ARGOS:-true}
+      - TRANSLATION_PROVIDER=${TRANSLATION_PROVIDER:-argos}
+    depends_on:
+      - mongo
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000/api}
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  argos:
+    image: argosopenteam/argos-translate:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    # Note: If you prefer a pip-installed server, replace image with a small python image and command to run the argos server.
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge

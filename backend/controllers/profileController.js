@@ -144,8 +144,26 @@ const getProfile = async (req, res) => {
 // Get all users for directory (public endpoint)
 const getAllUsers = async (req, res) => {
   try {
+    if (!req.user?.userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
+
+    const currentUser = await User.findById(req.user.userId).select('verificationStatus');
+    if (!currentUser || currentUser.verificationStatus !== 'approved') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Account not verified'
+      });
+    }
+
     // Fetch all users with their profiles, excluding admins
-    const users = await User.find({ isVerified: true, role: { $ne: 'admin' } }).select('-password');
+    const users = await User.find({
+      role: { $ne: 'admin' },
+      verificationStatus: 'approved'
+    }).select('-password');
     
     // Get farmer and contractor profiles
     const farmerProfiles = await FarmerProfile.find().populate('user', 'name email phone');
@@ -235,10 +253,10 @@ const getUserById = async (req, res) => {
       user = allUsers.find(u => u._id.toString() === userId);
     }
     
-    if (!user || !user.isVerified) {
+    if (!user || user.verificationStatus !== 'approved') {
       return res.status(404).json({
         status: 'error',
-        message: 'User not found or not verified'
+        message: 'User not found or not approved'
       });
     }
     

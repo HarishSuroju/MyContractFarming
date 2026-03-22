@@ -8,11 +8,12 @@ const {
   getUnreadCount
 } = require('../controllers/notificationController');
 const { authenticateToken } = require('../middleware/auth');
+const { requireApprovedVerification } = require('../middleware/verification');
 
 const router = express.Router();
 
 // Apply authentication middleware to all notification routes
-router.use(authenticateToken);
+router.use(authenticateToken, requireApprovedVerification);
 
 // Notification routes
 router.post('/create', createNotification);

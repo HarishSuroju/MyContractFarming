@@ -68,6 +68,25 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  verificationStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  verificationDocument: {
+    fileUrl: {
+      type: String,
+      default: null
+    },
+    uploadedAt: {
+      type: Date,
+      default: null
+    }
+  },
+  verificationRemarks: {
+    type: String,
+    default: ''
+  },
   emailOTP: String,
   emailOTPExpires: Date,
   

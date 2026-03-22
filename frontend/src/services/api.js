@@ -51,6 +51,7 @@ export const authAPI = {
   googleLogin: (credential) => api.post('/auth/google-login', { credential }),
   getProfile: () => api.get('/auth/profile'),
   updateProfileImage: (imageData) => api.put('/auth/profile/image', imageData),
+  uploadVerificationDocument: (fileUrl) => api.put('/auth/verification-document', { fileUrl }),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
   sendOTP: (data) => api.post('/auth/send-otp', data),
@@ -65,39 +66,10 @@ export const profileAPI = {
   getMatches: () => api.get('/profile/match'),
   createFarmerProfile: (profileData) => api.post('/profile/farmer', profileData),
   createContractorProfile: (profileData) => api.post('/profile/contractor', profileData),
-  // Create a separate axios instance for public API calls to avoid token attachment
-  getAllUsers: () => {
-    // Create a temporary axios instance without the auth interceptor
-    // Remove '/api' from the base URL if it exists to avoid double nesting
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
-    
-    const publicApi = axios.create({
-      baseURL: cleanBaseUrl,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    return publicApi.get('/api/users/directory');
-  },
+  getAllUsers: () => api.get('/users/directory'),
 
   // Get a single user's profile by ID
-  getUserProfile: (userId) => {
-    // Create a temporary axios instance without the auth interceptor
-    // Remove '/api' from the base URL if it exists to avoid double nesting
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-    const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
-    
-    const publicApi = axios.create({
-      baseURL: cleanBaseUrl,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    return publicApi.get(`/api/profile/user/${userId}`);
-  }
+  getUserProfile: (userId) => api.get(`/profile/user/${userId}`)
 };
 
 // Agreement API calls

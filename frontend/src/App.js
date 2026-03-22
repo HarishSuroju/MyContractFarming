@@ -29,6 +29,7 @@ import ContractorInterestSubmission from './pages/ContractorInterestSubmission';
 
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import VerificationGate from './components/VerificationGate';
 import Chatbot from './components/Chatbot';
 import FloatingChatButton from './components/FloatingChatButton';
 import Footer from './components/Footer';
@@ -60,7 +61,16 @@ function AppContent() {
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/help" element={<HelpPage />} />
-        <Route path="/users-directory" element={<UsersDirectory />} />
+        <Route
+          path="/users-directory"
+          element={
+            <ProtectedRoute>
+              <VerificationGate>
+                <UsersDirectory />
+              </VerificationGate>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/chatbot" element={<Chatbot />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -144,7 +154,9 @@ function AppContent() {
           path="/dashboard/requests"
           element={
             <ProtectedRoute>
-              <Requests />
+              <VerificationGate>
+                <Requests />
+              </VerificationGate>
             </ProtectedRoute>
           }
         />
@@ -183,7 +195,20 @@ function AppContent() {
           path="/user-profile/:userId"
           element={
             <ProtectedRoute>
-              <UserProfileDetail />
+              <VerificationGate>
+                <UserProfileDetail />
+              </VerificationGate>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <VerificationGate>
+                <UserProfileDetail />
+              </VerificationGate>
             </ProtectedRoute>
           }
         />

@@ -1,0 +1,139 @@
+AssuredContractFarming/
+├── .env
+├── .gitignore
+├── Email_Service_Analysis.md
+├── package.json
+├── package-lock.json
+├── README.md
+├── TODO.md
+├── backend/
+│   ├── createAdminUser.js
+│   ├── server.js
+│   ├── controllers/
+│   │   ├── adminController.js
+│   │   ├── agreementController.js
+│   │   ├── authController.js
+│   │   ├── chatbotController.js
+│   │   ├── connectionController.js
+│   │   ├── messageController.js
+│   │   ├── notificationController.js
+│   │   └── profileController.js
+│   ├── middleware/
+│   │   ├── admin.js
+│   │   └── auth.js
+│   ├── models/
+│   │   ├── Agreement.js
+│   │   ├── ConnectionRequest.js
+│   │   ├── FraudAlert.js
+│   │   ├── Message.js
+│   │   ├── Notification.js
+│   │   ├── Proposal.js
+│   │   └── User.js
+│   ├── routes/
+│   │   ├── admin.js
+│   │   ├── agreement.js
+│   │   ├── auth.js
+│   │   ├── chatbot.js
+│   │   ├── connections.js
+│   │   ├── messages.js
+│   │   ├── notifications.js
+│   │   └── profile.js
+│   └── utils/
+│       ├── fraudDetection.js
+│       ├── languageDetect.js
+│       ├── sendEmail.js
+│       └── sendSMS.js
+├── frontend/
+│   ├── .env
+│   ├── .gitignore
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── postcss.config.js
+│   ├── README.md
+│   ├── tailwind.config.js
+│   ├── public/
+│   │   ├── favicon.ico
+│   │   ├── index.html
+│   │   ├── logo192.png
+│   │   ├── logo512.png
+│   │   ├── manifest.json
+│   │   ├── robots.txt
+│   │   ├── assets/
+│   │   │   └── Photos/
+│   │   │       └── Chatbot Image.png
+│   │   └── locales/
+│   │       ├── translation.json
+│   │       ├── en/translation.json
+│   │       ├── hi/translation.json
+│   │       ├── kn/translation.json
+│   │       ├── ml/translation.json
+│   │       ├── ta/translation.json
+│   │       └── te/translation.json
+│   └── src/
+│       ├── App.css
+│       ├── App.js
+│       ├── App.test.js
+│       ├── i18n.js
+│       ├── index.css
+│       ├── index.js
+│       ├── logo.svg
+│       ├── reportWebVitals.js
+│       ├── setupTests.js
+│       ├── socket.js
+│       ├── assets/
+│       │   └── Photos/
+│       │       ├── Chatbot Image.png
+│       │       ├── HomeBG.jpg
+│       │       └── Logo.png
+│       ├── components/
+│       │   ├── Chatbot.jsx
+│       │   ├── ConnectionRequestsPreview.js
+│       │   ├── FloatingChatButton.jsx
+│       │   ├── Footer.jsx
+│       │   ├── IncomingConnectionRequests.js
+│       │   ├── LoginPrompt.js
+│       │   ├── Navbar.js
+│       │   ├── NotificationBell.js
+│       │   ├── OutgoingConnectionRequests.js
+│       │   └── ProtectedRoute.js
+│       ├── pages/
+│       │   ├── AdminAgreements.js
+│       │   ├── AdminAnalytics.js
+│       │   ├── AdminDashboard.js
+│       │   ├── AdminFraud.js
+│       │   ├── AdminPayments.js
+│       │   ├── AdminUsers.js
+│       │   ├── Agreements.js
+│       │   ├── AgreementSummary.js
+│       │   ├── CommunicationPage.js
+│       │   ├── ConnectionRequests.js
+│       │   ├── ContractorDashboard.js
+│       │   ├── ContractorInterestSubmission.js
+│       │   ├── FarmerDashboard.js
+│       │   ├── FarmerToContractorConnection.js
+│       │   ├── HelpPage.js
+│       │   ├── LandingPage.js
+│       │   ├── LoginPage.js
+│       │   ├── ProfileBuilder.js
+│       │   ├── ProfileEdit.js
+│       │   ├── ProfilePage.js
+│       │   ├── Requests.js
+│       │   ├── ResetPasswordPage.js
+│       │   ├── SignUpPage.js
+│       │   ├── Unauthorized.js
+│       │   ├── UserHomePage.js
+│       │   ├── UserProfileDetail.js
+│       │   ├── UsersDirectory.js
+│       │   └── VerifyOTPPage.js
+│       ├── services/
+│       │   ├── api.js
+│       │   └── Area.java
+│       └── utils/
+│           ├── authStorage.js
+│           ├── colorTheme.js
+│           └── sendEmail.js
+└── client/
+    └── src/
+        └── pages/
+            ├── SignUpPage.js
+            └── UserMatching.js

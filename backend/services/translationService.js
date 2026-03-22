@@ -1,9 +1,6 @@
 const TranslationCache = require('../models/TranslationCache');
 
-const LIBRETRANSLATE_URL =
-  process.env.LIBRETRANSLATE_URL || 'https://libretranslate.com/translate';
-const GOOGLE_TRANSLATE_URL =
-  process.env.GOOGLE_TRANSLATE_URL || 'https://translation.googleapis.com/language/translate/v2';
+const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || 'https://libretranslate.com/translate';
 
 async function callLibreTranslate(text, fromLang, toLang) {
   const body = {
@@ -25,7 +22,7 @@ async function callLibreTranslate(text, fromLang, toLang) {
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`LibreTranslate failed: ${response.status} ${errorBody}`);
+    throw new Error(`Translation provider failed: ${response.status} ${errorBody}`);
   }
 
   const data = await response.json();
@@ -76,10 +73,11 @@ async function executeProvider(text, fromLang, toLang) {
 }
 
 async function translate(text, fromLang = 'auto', toLang) {
-  const normalizedText = text?.trim();
+  const normalizedText = normalizeTextForCache(text);
   if (!normalizedText) throw new Error('Text is required for translation');
   if (!toLang) throw new Error('Target language is required');
 
+  // Check cache
   const existing = await TranslationCache.findOne({
     sourceText: normalizedText,
     fromLang,
@@ -90,15 +88,15 @@ async function translate(text, fromLang = 'auto', toLang) {
     return { translatedText: existing.translatedText, cacheHit: true, provider: existing.provider };
   }
 
-  const { translatedText, provider } = await executeProvider(normalizedText, fromLang, toLang);
+  const translatedText = await callLibreTranslate(normalizedText, fromLang, toLang);
 
   await TranslationCache.findOneAndUpdate(
     { sourceText: normalizedText, fromLang, toLang },
-    { sourceText: normalizedText, fromLang, toLang, translatedText, provider },
+    { sourceText: normalizedText, fromLang, toLang, translatedText, provider: 'libretranslate' },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  return { translatedText, cacheHit: false, provider };
+  return { translatedText, cacheHit: false };
 }
 
 module.exports = {

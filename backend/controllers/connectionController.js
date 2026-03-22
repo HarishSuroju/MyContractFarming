@@ -19,6 +19,13 @@ const createConnectionRequest = async (req, res) => {
       });
     }
 
+    if (sender.verificationStatus !== 'approved' || receiver.verificationStatus !== 'approved') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Account not verified'
+      });
+    }
+
     // Check if a connection request already exists between these users
     const existingRequest = await ConnectionRequest.findOne({
       $or: [
@@ -230,6 +237,13 @@ const createProposal = async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'Sender or receiver not found'
+      });
+    }
+
+    if (sender.verificationStatus !== 'approved' || receiver.verificationStatus !== 'approved') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Account not verified'
       });
     }
 

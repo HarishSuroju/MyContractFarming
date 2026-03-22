@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, googleLogin, getProfile, updateProfileImage, forgotPassword, resetPassword, verifyOTP, resendOTP, sendOTP, updatePreferredLanguage } = require('../controllers/authController');
+const { register, login, googleLogin, getProfile, updateProfileImage, uploadVerificationDocument, forgotPassword, resetPassword, verifyOTP, resendOTP, sendOTP, updatePreferredLanguage } = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -17,6 +17,5 @@ router.post('/resend-otp', resendOTP);
 // Protected routes
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile/image', authenticateToken, updateProfileImage);
-router.put('/preferred-language', authenticateToken, updatePreferredLanguage);
 
 module.exports = router;

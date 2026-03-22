@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode'; // Import jwt-decode to get user info fr
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { clearAuthSession, getToken } from '../utils/authStorage';
+import { FaCheckCircle, FaUsersSlash } from 'react-icons/fa';
 
 const UsersDirectory = () => {
   const { t } = useTranslation();
@@ -13,7 +14,9 @@ const UsersDirectory = () => {
   const [cropFilter, setCropFilter] = useState('');
   const [seasonFilter, setSeasonFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [directoryError, setDirectoryError] = useState('');
 
   // Clear any potentially expired tokens on component mount
   useEffect(() => {
@@ -44,7 +47,7 @@ const UsersDirectory = () => {
 
   const filterUsersCallback = useCallback(() => {
     console.log('Filtering users. Total users:', users.length);
-    console.log('Current filters:', { searchTerm, cropFilter, seasonFilter, roleFilter });
+    console.log('Current filters:', { searchTerm, cropFilter, seasonFilter, roleFilter, locationFilter });
     
     let filtered = users.filter(user => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,8 +66,9 @@ const UsersDirectory = () => {
       
       // For roles, match the role field
       const matchesRole = !roleFilter || user.role.toLowerCase() === roleFilter.toLowerCase();
+      const matchesLocation = !locationFilter || user.location === locationFilter;
       
-      const result = matchesSearch && matchesCrop && matchesSeason && matchesRole;
+      const result = matchesSearch && matchesCrop && matchesSeason && matchesRole && matchesLocation;
       
       // Log filtering details for debugging when result is false
       if (!result) {
@@ -79,7 +83,8 @@ const UsersDirectory = () => {
           searchTerm,
           cropFilter,
           seasonFilter,
-          roleFilter
+          roleFilter,
+          locationFilter
         });
       }
       
@@ -88,7 +93,7 @@ const UsersDirectory = () => {
     
     console.log('Filtered users count:', filtered.length);
     setFilteredUsers(filtered);
-  }, [users, searchTerm, cropFilter, seasonFilter, roleFilter]);
+  }, [users, searchTerm, cropFilter, seasonFilter, roleFilter, locationFilter]);
 
   useEffect(() => {
     filterUsersCallback();
@@ -103,6 +108,7 @@ const UsersDirectory = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setDirectoryError('');
       
       // Get current user ID from the token
       const token = getToken();
@@ -147,6 +153,8 @@ const UsersDirectory = () => {
                 role: 'Farmer',
                 email: user.email,
                 phone: user.phone,
+                verificationStatus: user.verificationStatus,
+                profilePhoto: user.profilePhoto,
                 location: user.profile.landLocation || '',
                 crops: user.profile.cropsGrown || [],
                 season: user.profile.selectedSeason || '',
@@ -162,6 +170,8 @@ const UsersDirectory = () => {
                 role: 'Contractor',
                 email: user.email,
                 phone: user.phone,
+                verificationStatus: user.verificationStatus,
+                profilePhoto: user.profilePhoto,
                 company: user.profile.companyName || '',
                 location: user.profile.companyLocation || '',
                 specialization: user.profile.contractPreferences || '',
@@ -179,6 +189,8 @@ const UsersDirectory = () => {
               role: user.role.charAt(0).toUpperCase() + user.role.slice(1),
               email: user.email,
               phone: user.phone,
+              verificationStatus: user.verificationStatus,
+              profilePhoto: user.profilePhoto,
               location: '',
               crops: [],
               season: '',
@@ -199,6 +211,8 @@ const UsersDirectory = () => {
               role: (user.role || '').charAt(0).toUpperCase() + (user.role || '').slice(1),
               email: user.email || '',
               phone: user.phone || '',
+              verificationStatus: user.verificationStatus || 'pending',
+              profilePhoto: user.profilePhoto || null,
               location: '',
               crops: [],
               season: '',
@@ -228,37 +242,14 @@ const UsersDirectory = () => {
       console.error('Error details:', error?.response || error?.message);
       // If the error is related to authentication, clear the token
       if (error.response && error.response.status === 403) {
+        setDirectoryError(error.response.data?.message || 'Account not verified');
+      } else if (error.response && error.response.status === 401) {
         clearAuthSession();
+      } else {
+        setDirectoryError('Unable to load approved users at the moment.');
       }
-      // Fallback to sample data if API fails
-      const sampleUsers = [
-        {
-          id: 1,
-          name: 'Rakesh Kumar',
-          role: 'Farmer',
-          email: 'rakesh@example.com',
-          phone: '6858409847',
-          location: 'Assam',
-          crops: ['Coffee', 'Tobacco'],
-          season: 'Zaid',
-          experience: '11 years',
-          landSize: '3 acres'
-        },
-        {
-          id: 2,
-          name: 'Priya Singh',
-          role: 'Contractor',
-          email: 'priya@example.com',
-          phone: '9876543210',
-          company: 'AgriTech Solutions',
-          location: 'Punjab',
-          specialization: 'Irrigation Systems',
-          projects: '25+ completed'
-        }
-      ];
-      console.log('Using sample users:', sampleUsers.length);
-      setUsers(sampleUsers);
-      setFilteredUsers(sampleUsers);
+      setUsers([]);
+      setFilteredUsers([]);
     } finally {
       setLoading(false);
     }
@@ -270,6 +261,7 @@ const UsersDirectory = () => {
   };
 
   const navigate = useNavigate();
+  const availableLocations = [...new Set(users.map((user) => user.location).filter(Boolean))].sort();
 
   const viewMore = (userId) => {
     // Navigate to the user profile detail page
@@ -349,15 +341,34 @@ const UsersDirectory = () => {
               <option value="Farmer">{t('userDirectory.farmers')}</option>
               <option value="Contractor">{t('userDirectory.contractors')}</option>
             </select>
+
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="px-4 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 min-w-[150px]"
+            >
+              <option value="">{t('userDirectory.location')}</option>
+              {availableLocations.map((location) => (
+                <option key={location} value={location}>{location}</option>
+              ))}
+            </select>
           </div>
         </div>
-        
+
+        {directoryError ? (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
+            {directoryError}
+          </div>
+        ) : null}
+
         {/* User Cards Container */}
 {filteredUsers.length === 0 ? (
-  <div className="text-center py-20">
-    <div className="text-lg text-gray-500">
-      {t('userDirectory.noUsersFound')}
+  <div className="text-center py-20 rounded-2xl border border-dashed border-gray-300 bg-white">
+    <FaUsersSlash className="mx-auto text-4xl text-gray-400 mb-4" />
+    <div className="text-lg text-gray-600 font-medium">
+      No approved users available right now
     </div>
+    <p className="text-sm text-gray-500 mt-2">{t('userDirectory.noUsersFound')}</p>
   </div>
 ) : (
   <div className="space-y-8">
@@ -368,7 +379,7 @@ const UsersDirectory = () => {
       return (
         <div
           key={user.id}
-          className={`relative z-0 flex rounded-2xl p-6 transition-all duration-300 cursor-pointer border border-gray-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-xl hover:z-20`}
+          className={`relative z-0 flex rounded-2xl p-6 transition-all duration-300 cursor-pointer border border-gray-200 bg-white shadow-sm hover:-translate-y-1 hover:scale-[1.01] hover:shadow-xl hover:z-20`}
         >
           {/* Avatar */}
           <div
@@ -410,6 +421,10 @@ const UsersDirectory = () => {
                   {user.role === 'Farmer'
                     ? t('userDirectory.farmer')
                     : t('userDirectory.contractor')}
+                </span>
+                <span className="ml-2 inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  <FaCheckCircle className="mr-1" />
+                  Verified
                 </span>
               </div>
             </div>

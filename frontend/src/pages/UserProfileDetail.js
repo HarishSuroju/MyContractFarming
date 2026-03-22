@@ -6,24 +6,25 @@ import { getAuthValue } from '../utils/authStorage';
 
 const UserProfileDetail = () => {
   const { t } = useTranslation();
-  const { userId } = useParams();
+  const { userId, id } = useParams();
+  const targetUserId = userId || id;
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('UserProfileDetail mounted with userId:', userId);
+    console.log('UserProfileDetail mounted with userId:', targetUserId);
     fetchUserProfile();
-  }, [userId]);
+  }, [targetUserId]);
 
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
       
       // Validate userId format
-      if (!userId || userId.length < 12) {
-        console.log('Invalid user ID format:', userId);
+      if (!targetUserId || targetUserId.length < 12) {
+        console.log('Invalid user ID format:', targetUserId);
         setError(t('profileDetail.userNotFound'));
         setLoading(false);
         return;
@@ -31,7 +32,7 @@ const UserProfileDetail = () => {
       
       // First try to get the user with the dedicated endpoint
       try {
-        const response = await profileAPI.getUserProfile(userId);
+        const response = await profileAPI.getUserProfile(targetUserId);
         if (response.data && response.data.user) {
           setUser(response.data.user);
           return;
@@ -52,14 +53,14 @@ const UserProfileDetail = () => {
       try {
         const directoryResponse = await profileAPI.getAllUsers();
         const foundUser = directoryResponse.data.data.users.find(u => 
-          u.id?.toString().trim() === userId?.toString().trim() ||
-          u._id?.toString().trim() === userId?.toString().trim()
+          u.id?.toString().trim() === targetUserId?.toString().trim() ||
+          u._id?.toString().trim() === targetUserId?.toString().trim()
         );
         
         if (foundUser) {
           setUser(foundUser);
         } else {
-          console.log('User not found in directory. Looking for ID:', userId);
+          console.log('User not found in directory. Looking for ID:', targetUserId);
           console.log('Available users:', directoryResponse.data.data.users.map(u => ({id: u.id, name: u.name})).slice(0, 5));
           setError(t('profileDetail.userNotFound'));
         }
@@ -102,13 +103,13 @@ const UserProfileDetail = () => {
     
     if (currentUserRole === 'farmer' && user.role === 'contractor') {
       // Flow 1: Farmer connects to Contractor
-      navigate(`/farmer-contractor-connection/${userId}`);
+      navigate(`/farmer-contractor-connection/${targetUserId}`);
     } else if (currentUserRole === 'contractor' && user.role === 'farmer') {
       // Flow 2: Contractor connects to Farmer
-      navigate(`/contractor-interest/${userId}`);
+      navigate(`/contractor-interest/${targetUserId}`);
     } else {
       // For same roles, open direct communication.
-      navigate(`/communication/${userId}`);
+      navigate(`/communication/${targetUserId}`);
     }
   };
 

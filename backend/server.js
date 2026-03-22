@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 // Import routes
@@ -17,7 +18,9 @@ const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const messageRoutes = require('./routes/messages');
 const chatbotRoutes = require('./routes/chatbot');
-const translationRoutes = require('./routes/translation');
+const translationRoutes = require('./routes/translations');
+const { authenticateToken } = require('./middleware/auth');
+const { requireApprovedVerification } = require('./middleware/verification');
 
 // App initialization
 const app = express();
@@ -31,6 +34,22 @@ const io = new Server(server, {
 
 // Make io available to routes
 app.set('io', io);
+
+// Socket authentication middleware - optional but sets `socket.userId` when token provided
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake?.auth?.token || socket.handshake?.query?.token;
+    if (!token) return next();
+    const secret = process.env.JWT_SECRET || 'secret';
+    const payload = jwt.verify(token, secret);
+    socket.userId = payload.id || payload.userId || payload.sub;
+    return next();
+  } catch (err) {
+    // Don't reject connection outright; allow unauthenticated sockets but avoid privileged actions
+    console.warn('Socket auth failed:', err.message);
+    return next();
+  }
+});
 
 // General rate limiting for all requests
 const limiter = rateLimit({
@@ -58,9 +77,15 @@ io.on('connection', (socket) => {
 
   // Join room with user ID for targeted events (e.g., calls, notifications)
   socket.on('join', (userId) => {
-    if (!userId) return;
-    socket.join(userId);
-    console.log(`User ${userId} joined room`);
+    // Prefer authenticated userId from token
+    const uid = socket.userId || userId;
+    if (!uid) return;
+    if (socket.userId && userId && socket.userId !== userId) {
+      console.warn('Socket join attempt with mismatched userId', { socketUser: socket.userId, joinRequest: userId });
+      return;
+    }
+    socket.join(uid);
+    console.log(`User ${uid} joined room`);
   });
 
   /**
@@ -78,6 +103,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, offer, hasVideo } = payload || {};
       if (!to || !from || !offer) return;
+      if (socket.userId && socket.userId !== from) return; // prevent spoofing
 
       io.to(to).emit('incoming-call', {
         from,
@@ -94,6 +120,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, answer } = payload || {};
       if (!to || !from || !answer) return;
+      if (socket.userId && socket.userId !== from) return;
 
       io.to(to).emit('call-answered', {
         from,
@@ -109,6 +136,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, candidate } = payload || {};
       if (!to || !from || !candidate) return;
+      if (socket.userId && socket.userId !== from) return;
 
       io.to(to).emit('ice-candidate', {
         from,
@@ -124,6 +152,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, reason } = payload || {};
       if (!to || !from) return;
+      if (socket.userId && socket.userId !== from) return;
 
       io.to(to).emit('call-ended', {
         from,
@@ -139,6 +168,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from } = payload || {};
       if (!to || !from) return;
+      if (socket.userId && socket.userId !== from) return;
 
       io.to(to).emit('call-rejected', {
         from,
@@ -162,6 +192,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, content, messageId } = payload || {};
       if (!to || !from || !content) return;
+      if (socket.userId && socket.userId !== from) return;
 
       // Emit to recipient
       io.to(to).emit('receive-message', {
@@ -187,6 +218,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, isTyping } = payload || {};
       if (!to || !from) return;
+      if (socket.userId && socket.userId !== from) return;
 
       io.to(to).emit('user-typing', {
         from,
@@ -203,6 +235,7 @@ io.on('connection', (socket) => {
     try {
       const { to, from, messageId } = payload || {};
       if (!to || !from || !messageId) return;
+      if (socket.userId && socket.userId !== from) return;
 
       io.to(to).emit('message-read-confirmation', {
         messageId,
@@ -239,10 +272,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Test endpoint for user directory
+// User directory endpoints
 const { getAllUsers, getUserById } = require('./controllers/profileController');
-app.get('/api/users/directory', getAllUsers);
-app.get('/api/users/directory/:userId', getUserById);
+app.get('/api/users/directory', authenticateToken, requireApprovedVerification, getAllUsers);
+app.get('/api/users/directory/:userId', authenticateToken, requireApprovedVerification, getUserById);
 
 // 404 handler
 app.use((req, res, next) => {
@@ -273,8 +306,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/assuredco
 })
 .catch((err) => {
   console.error('Database connection error:', err);
-  // Start server even without database connection for development
-  server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT} (without database)`);
-  });
+  if (process.env.NODE_ENV === 'production') {
+    console.error('Exiting due to database connection failure in production.');
+    process.exit(1);
+  } else {
+    // Start server even without database connection for development
+    server.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT} (without database)`);
+    });
+  }
 });

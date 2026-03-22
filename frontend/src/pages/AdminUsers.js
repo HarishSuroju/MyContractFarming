@@ -114,9 +114,17 @@ const AdminUsers = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    user.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    user.verificationStatus === 'approved'
+                      ? 'bg-green-100 text-green-800'
+                      : user.verificationStatus === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {user.isVerified ? t('admin.verified') : t('admin.pending')}
+                    {user.verificationStatus === 'approved'
+                      ? t('admin.verified')
+                      : user.verificationStatus === 'rejected'
+                      ? t('admin.rejected')
+                      : t('admin.pending')}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -127,10 +135,10 @@ const AdminUsers = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  {!user.isVerified && (
+                  {user.verificationStatus !== 'approved' && (
                     <>
                       <button
-                        onClick={() => handleVerifyUser(user._id, 'verified')}
+                        onClick={() => handleVerifyUser(user._id, 'approved')}
                         className="text-green-600 hover:text-green-900"
                       >
                         {t('admin.verify')}

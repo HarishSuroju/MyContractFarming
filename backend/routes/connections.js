@@ -1,5 +1,5 @@
 const express = require('express');
-const { 
+const {
   createConnectionRequest,
   getConnectionRequestById,
   updateConnectionRequestStatus,
@@ -11,20 +11,22 @@ const {
   getUserProposals
 } = require('../controllers/connectionController');
 const { authenticateToken } = require('../middleware/auth');
+const { requireApprovedVerification } = require('../middleware/verification');
 
 const router = express.Router();
+router.use(authenticateToken, requireApprovedVerification);
 
 // Connection Requests
-router.post('/requests', authenticateToken, createConnectionRequest);
-router.get('/requests/:requestId', authenticateToken, getConnectionRequestById);
-router.patch('/requests/:requestId/status', authenticateToken, updateConnectionRequestStatus);
-router.delete('/requests/:requestId', authenticateToken, cancelConnectionRequest);
-router.get('/requests', authenticateToken, getUserConnectionRequests);
+router.post('/requests', createConnectionRequest);
+router.get('/requests/:requestId', getConnectionRequestById);
+router.patch('/requests/:requestId/status', updateConnectionRequestStatus);
+router.delete('/requests/:requestId', cancelConnectionRequest);
+router.get('/requests', getUserConnectionRequests);
 
 // Proposals
-router.post('/proposals', authenticateToken, createProposal);
-router.get('/proposals/:proposalId', authenticateToken, getProposalById);
-router.patch('/proposals/:proposalId/status', authenticateToken, updateProposalStatus);
-router.get('/proposals', authenticateToken, getUserProposals);
+router.post('/proposals', createProposal);
+router.get('/proposals/:proposalId', getProposalById);
+router.patch('/proposals/:proposalId/status', updateProposalStatus);
+router.get('/proposals', getUserProposals);
 
 module.exports = router;

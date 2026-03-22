@@ -40,11 +40,22 @@ const getAllUsers = async (req, res) => {
 const verifyUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; // 'verified' or 'rejected'
+    const { status, remarks = '' } = req.body; // 'approved' or 'rejected'
+    const normalizedStatus = status === 'verified' ? 'approved' : status;
+
+    if (!['approved', 'rejected'].includes(normalizedStatus)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid verification status'
+      });
+    }
 
     const user = await User.findByIdAndUpdate(
       id,
-      { isVerified: status === 'verified' },
+      {
+        verificationStatus: normalizedStatus,
+        verificationRemarks: remarks || ''
+      },
       { new: true }
     );
 
@@ -55,9 +66,30 @@ const verifyUser = async (req, res) => {
       });
     }
 
+    // Notify user about verification updates
+    const { Notification } = require('../models/Notification');
+    const notification = new Notification({
+      userId: user._id.toString(),
+      senderId: req.user.userId,
+      type: normalizedStatus === 'approved' ? 'verification_approved' : 'verification_rejected',
+      title: normalizedStatus === 'approved' ? 'Account Verified' : 'Verification Rejected',
+      message:
+        normalizedStatus === 'approved'
+          ? 'Your account has been verified successfully.'
+          : `Your account verification was rejected.${remarks ? ` ${remarks}` : ''}`,
+      referenceId: user._id,
+      referenceType: 'user'
+    });
+    await notification.save();
+
+    if (req.app && req.app.get('io')) {
+      const io = req.app.get('io');
+      io.to(user._id.toString()).emit('notification:new', notification);
+    }
+
     res.status(200).json({
       status: 'success',
-      message: `User ${status} successfully`,
+      message: `User ${normalizedStatus} successfully`,
       data: { user }
     });
   } catch (error) {
@@ -295,7 +327,7 @@ const getFraudAlerts = async (req, res) => {
 const getAnalytics = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
-    const verifiedUsers = await User.countDocuments({ isVerified: true });
+    const verifiedUsers = await User.countDocuments({ verificationStatus: 'approved' });
     
     let activeAgreements = 0;
     let completedContracts = 0;

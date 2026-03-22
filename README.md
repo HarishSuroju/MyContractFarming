@@ -84,37 +84,124 @@ REACT_APP_API_URL=http://localhost:5000/api
    npm run dev
    ```
 
-2. Start the frontend development server:
-   ```bash
-   cd client
-   npm start
-   ```
+# Assured Contract Farming
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+Assured Contract Farming is a MERN-stack application that connects farmers and contractors/buyers, providing real-time messaging, contract management, verification flows, and multilingual support.
 
-## Features
+This repository contains the backend (Express + MongoDB), the React frontend, and local tooling for development and Docker-based deployment.
 
-- Farmer and buyer registration/authentication
-- Smart contract creation and management
-- Real-time contract tracking
-- Payment processing
-- Dashboard for monitoring contracts
-- Notifications system
+## Quick Overview
 
-## Contributing
+- Backend: `backend/server.js` (Express, Socket.IO, Mongoose)
+- Frontend: `frontend/` (React + i18next)
+- Database: MongoDB
+- Realtime: Socket.IO (messaging, WebRTC signaling)
+- Translation: `backend/services/translationService.js` (providers + cache + fallbacks)
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a pull request
+## Getting Started (Local Dev)
 
-## License
+1. Install dependencies:
 
-This project is licensed under the MIT License.
+```bash
+npm install
+cd client && npm install && cd ..
+```
 
-## Contact
+2. Create a `.env` file at project root (or use `.env.example`) and set at least:
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter) - email@example.com
+```
+JWT_SECRET=changeme
+MONGODB_URI=mongodb://localhost:27017/assuredcontractfarming
+NODE_ENV=development
+```
+
+3. Start backend (dev):
+
+```bash
+npm run dev
+```
+
+4. Start frontend dev server:
+
+```bash
+cd frontend
+npm start
+```
+
+5. Health check: GET `http://localhost:5000/api/health`
+
+## Docker (Local)
+
+Docker Compose is provided to run the backend, MongoDB, frontend (built + nginx) and a local Argos Translate container.
+
+From the project root:
+
+```bash
+cp .env.example .env   # update values if needed
+docker compose up --build
+```
+
+Services started by compose:
+- `mongo` (MongoDB)
+- `backend` (Express API)
+- `frontend` (React app served by nginx)
+- `argos` (local Argos Translate server)
+
+Notes:
+- `ARGOS_URL` defaults to `http://argos:8000/translate` inside compose network; set `ARGOS_URL` if overriding.
+
+## Translation / Multilingual
+
+- Dynamic translations are available via POST `/api/translations/dynamic` (body: `{ text, fromLang, toLang }`).
+- Providers live in `backend/services/translationProviders.js` and a provider-agnostic flow is in `backend/services/translationService.js`.
+- By default the service prefers a local Argos server (if configured) and falls back to LibreTranslate.
+- Cache model: `backend/models/translationCache.js` (unique index on `sourceText, fromLang, toLang`).
+- Env vars (partial list):
+   - `TRANSLATION_PROVIDER` (libre|argos)
+   - `TRANSLATION_PREFER_ARGOS` (true/false)
+   - `ARGOS_URL` (e.g., http://localhost:8000/translate)
+   - `LIBRETRANSLATE_URL` and `LIBRETRANSLATE_API_KEY`
+   - `TRANSLATION_TIMEOUT_MS`, `TRANSLATION_RETRIES`
+
+## Testing & Tools
+
+- Quick syntax check (Node syntax) for backend files:
+
+```bash
+node backend/tools/syntaxCheck.js
+```
+
+- A simple smoke test script exercises `/api/health` and Socket.IO: `node backend/tools/smokeTest.js`.
+
+## Development Notes & Recommendations
+
+- Socket security: server accepts socket auth token and sets `socket.userId` (verify tokens on client handshake).
+- Production: set `NODE_ENV=production` and ensure `JWT_SECRET` + DB connection are secure.
+- Consider self-hosting LibreTranslate or Argos for privacy and reliability.
+
+## Project Structure
+
+Top-level (relevant):
+
+```
+backend/
+   controllers/
+   middleware/
+   models/
+   routes/
+   services/         # translationService, translationProviders, metrics
+frontend/           # React app (i18n + components)
+Dockerfile.backend
+Dockerfile.frontend
+docker-compose.yml
+README.md
+docs/               # architecture, endpoints, translation notes
+```
+
+## Next steps
+
+- Run `docker compose up --build` to start local development stack.
+- Review `docs/` for architecture and endpoints.
+
+---
+If you want, I can expand `docs/` with API examples, deployment notes, or a developer onboarding checklist.

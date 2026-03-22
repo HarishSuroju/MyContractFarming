@@ -1,0 +1,18 @@
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+# Copy dependency manifests
+COPY package.json package-lock.json* ./
+
+# Install only production deps by default; development can mount and run npm install in container
+RUN npm install --production
+
+# Copy repository (we only need backend at runtime)
+COPY . .
+
+ENV NODE_ENV=production
+
+EXPOSE 5000
+
+CMD ["node", "backend/server.js"]
