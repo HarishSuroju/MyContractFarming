@@ -11,11 +11,11 @@ dist/
 
 # Environment files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+.env.*
+frontend/.env
+frontend/.env.*
+!.env.example
+!frontend/.env.example
 
 # Logs
 logs
@@ -51,9 +51,6 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-
-# dotenv environment variables file
-.env*
 
 # IDE and editor files
 .vscode/
