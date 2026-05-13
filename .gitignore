@@ -58,6 +58,7 @@ typings/
 *.swp
 *.swo
 *~
+.firebase/
 
 # OS generated files
 Thumbs.db

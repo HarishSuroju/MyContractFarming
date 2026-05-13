@@ -1,3 +1,5 @@
+require('./utils/loadEnv');
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,7 +9,6 @@ const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -22,15 +23,33 @@ const translationRoutes = require('./routes/translations');
 const { authenticateToken } = require('./middleware/auth');
 const { requireApprovedVerification } = require('./middleware/verification');
 
+const defaultAllowedOrigins = ['http://localhost:3000', 'http://localhost:3003'];
+const envAllowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowedOrigins = [...new Set([
+  ...defaultAllowedOrigins,
+  ...envAllowedOrigins,
+  process.env.FRONTEND_URL,
+].filter(Boolean))];
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // App initialization
 const app = express();
+app.set('trust proxy', 1);
 const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3003'],
-    credentials: true
-  }
-});
+const io = new Server(server, { cors: corsOptions });
 
 // Make io available to routes
 app.set('io', io);
@@ -61,12 +80,7 @@ app.use(limiter); // Apply to all requests
 
 // Middleware
 app.use(helmet()); // Security headers
-// Configure CORS for development
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3003'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+app.use(cors(corsOptions));
 app.use(morgan('combined')); // Logging
 app.use(express.json({ limit: '50mb' })); // Parse JSON bodies with increased limit for image uploads
 app.use(express.urlencoded({ limit: '50mb', extended: true })); // Parse URL encoded bodies

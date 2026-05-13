@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { notificationAPI } from '../services/api';
 import io from 'socket.io-client';
 import { getAuthValue, getToken } from '../utils/authStorage';
+import { SOCKET_BASE_URL } from '../socket';
 
 const NotificationBell = () => {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ const NotificationBell = () => {
     const userId = getAuthValue('userId');
     
     if (token && userId) {
-      socketRef.current = io('http://localhost:5000', {
+      socketRef.current = io(SOCKET_BASE_URL, {
         transports: ['websocket'],
         auth: {
           token

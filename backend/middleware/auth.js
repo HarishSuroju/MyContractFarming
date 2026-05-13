@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+require('../utils/loadEnv');
 
 /**
  * Basic JWT authentication middleware.
