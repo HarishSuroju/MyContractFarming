@@ -92,3 +92,5 @@ temp/
 *.bak
 *.backup
 .DS_Store
+
+/MyWebServerKey.pem
