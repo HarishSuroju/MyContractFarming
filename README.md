@@ -1,5 +1,315 @@
 # Assured Contract Farming
 
+Assured Contract Farming is a full-stack web application that connects farmers and buyers/contractors through a secure digital platform. The system enables contract management, user verification, multilingual communication, and real-time messaging to improve transparency and trust in agricultural partnerships.
+
+## Features
+
+* Farmer and Buyer Registration & Authentication
+* Secure JWT-based Authorization
+* Contract Creation and Management
+* Real-Time Messaging using Socket.IO
+* Multilingual Communication Support
+* Dynamic Translation Services
+* User Verification Workflow
+* Responsive React Frontend
+* RESTful API Backend
+* Dockerized Deployment
+* Health Monitoring and Auto-Restart Policies
+* AWS EC2 Cloud Deployment
+* CI/CD Pipeline using GitHub Actions
+
+---
+
+## Architecture
+
+```text
+Frontend (React)
+        │
+        ▼
+Backend API (Node.js + Express)
+        │
+        ▼
+MongoDB Database
+        │
+        ▼
+Socket.IO (Real-Time Communication)
+
+Translation Service
+ ├── LibreTranslate
+ └── Argos Translate (Optional)
+```
+
+---
+
+## Technology Stack
+
+### Frontend
+
+* React.js
+* React Router
+* Axios
+* i18next
+
+### Backend
+
+* Node.js
+* Express.js
+* Socket.IO
+* JWT Authentication
+
+### Database
+
+* MongoDB
+* Mongoose
+
+### DevOps & Deployment
+
+* Docker
+* Docker Compose
+* AWS EC2
+* GitHub Actions (CI/CD)
+
+### Translation Services
+
+* LibreTranslate
+* Argos Translate
+
+---
+
+## Project Structure
+
+```text
+AssuredContractFarming/
+│
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   └── server.js
+│
+├── frontend/
+│   ├── public/
+│   └── src/
+│
+├── docs/
+│
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+NODE_ENV=production
+
+PORT=5000
+
+MONGODB_URI=your_mongodb_connection_string
+
+JWT_SECRET=your_jwt_secret
+
+LIBRETRANSLATE_URL=https://translate.argosopentech.com
+
+TRANSLATION_PROVIDER=libretranslate
+
+TRANSLATION_PREFER_ARGOS=false
+```
+
+---
+
+## Local Development
+
+### Clone Repository
+
+```bash
+git clone https://github.com/HarishSuroju/MyContractFarming.git
+
+cd MyContractFarming
+```
+
+### Install Dependencies
+
+Backend:
+
+```bash
+npm install
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+### Run Backend
+
+```bash
+npm run dev
+```
+
+### Run Frontend
+
+```bash
+cd frontend
+npm start
+```
+
+Backend Health Endpoint:
+
+```text
+http://localhost:5000/api/health
+```
+
+---
+
+## Docker Deployment
+
+Build and start all services:
+
+```bash
+docker-compose up -d --build
+```
+
+View running containers:
+
+```bash
+docker ps
+```
+
+View logs:
+
+```bash
+docker-compose logs -f
+```
+
+Stop services:
+
+```bash
+docker-compose down
+```
+
+---
+
+## AWS Deployment
+
+The application is deployed on an AWS EC2 instance using Docker containers.
+
+### Production Features
+
+* Dockerized Application Deployment
+* Automated Container Recovery (`restart: unless-stopped`)
+* Backend Health Checks
+* Environment-Based Configuration
+* Persistent Cloud Hosting
+
+---
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions to automate deployments.
+
+### Workflow
+
+```text
+Developer Pushes Code
+            │
+            ▼
+GitHub Repository
+            │
+            ▼
+GitHub Actions
+            │
+            ▼
+SSH into AWS EC2
+            │
+            ▼
+Pull Latest Changes
+            │
+            ▼
+Docker Rebuild & Restart
+            │
+            ▼
+Application Updated
+```
+
+Deployment is triggered automatically whenever code is pushed to the `main` branch.
+
+---
+
+## Translation System
+
+Dynamic translations are available through:
+
+```http
+POST /api/translations/dynamic
+```
+
+Example Request:
+
+```json
+{
+  "text": "Hello",
+  "fromLang": "en",
+  "toLang": "te"
+}
+```
+
+Supported providers:
+
+* LibreTranslate
+* Argos Translate
+
+Translation caching is implemented to reduce repeated API requests and improve response times.
+
+---
+
+## Health Monitoring
+
+Application health can be checked using:
+
+```http
+GET /api/health
+```
+
+Docker health checks continuously monitor backend availability and help ensure production reliability.
+
+---
+
+## Future Enhancements
+
+* Digital Contract Signing
+* AI-based Contract Recommendations
+* Farmer Credit Scoring
+* Notification System
+* Analytics Dashboard
+* Mobile Application
+
+---
+
+## Author
+
+**Harish Suroju**
+
+AWS Cloud Practitioner | Full-Stack Developer | MERN Stack Developer
+
+GitHub: https://github.com/HarishSuroju
+
+
+
+<!-- # Assured Contract Farming
+
 A MERN stack application for connecting farmers with buyers through smart contracts.
 
 ## Project Structure
@@ -204,4 +514,4 @@ docs/               # architecture, endpoints, translation notes
 - Review `docs/` for architecture and endpoints.
 
 ---
-If you want, I can expand `docs/` with API examples, deployment notes, or a developer onboarding checklist.
+If you want, I can expand `docs/` with API examples, deployment notes, or a developer onboarding checklist. -->
